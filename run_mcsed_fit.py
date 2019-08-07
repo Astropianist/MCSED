@@ -165,7 +165,7 @@ def parse_args(argv=None):
                         help='''Number of test objects''',
                         type=int, default=None)
 
-    parser.add_argument("-sma", "--ssp_max_age",
+    parser.add_argument("-sma", "--max_ssp_age",
                         help='''Max age taken from files for any given simple stellar population''',
                         type=float, default=9.5)
 
