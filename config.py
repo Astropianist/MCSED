@@ -65,8 +65,9 @@ use_input_data = True #False
 #           must have null value = -99
 #           must have both flux and error, i.e., cannot have flux with null error
 #           can also set to {} or None, if preferred
-emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
-                    'Hb' : (4861., 1.),   'Ha' : (6563., 1.)}
+# emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
+#                     'Hb' : (4861., 1.),   'Ha' : (6563., 1.)}
+emline_list_dict = {'OIII' : (5007., 1.0),'Hb' : (4861., 1.0),   'Ha' : (6563., 5.0)}
 #emline_list_dict = {'OII'  : {'wave':3727., 'weight':0.5},
 #                    'OIII' : {'wave':5007., 'weight':0.5},  
 #                    'Hb'   : {'wave':4861., 'weight':1. },
@@ -98,10 +99,10 @@ assume_energy_balance = False #If true, use energy balance between dust attenuat
 output_dict = {'parameters'    : True,
                'settings'      : True, 
                'fitposterior'  : False,
-               'bestfitspec'   : False,
-               'fluxdensity'   : False,
-               'lineflux'      : False,
-               'triangle plot' : True,
+               'bestfitspec'   : True,
+               'fluxdensity'   : True,
+               'lineflux'      : True,
+               'triangle plot' : False,
                'sample plot'   : False,
                'image format'  : 'png'}
 # WPBWPB: combine photfluxes into single file, also add emline flux comparison
