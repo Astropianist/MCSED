@@ -889,12 +889,14 @@ def main(argv=None, ssp_info=None):
     # Specify whether dust emission is fixed
     if not args.fit_dust_em:
         mcsed_model.dust_em_class.fixed = True
+        print("NOT fitting dust")
     else:
         if args.test:
             mcsed_model.dust_em_class.fixed = True
             print("Since you are in test mode, we are setting the Boolean variable fit_dust_em to False")
         else:
             mcsed_model.dust_em_class.fixed = False
+            print("FITting dust")
 
     # Specify whether energy balance is assumed
     if args.assume_energy_balance:
@@ -1031,7 +1033,7 @@ def main(argv=None, ssp_info=None):
             mcsed_model.data_emline_e = emie
 
             # Remove filters containing Lyman-alpha (and those blueward)
-            mcsed_model.remove_waverange_filters(0., 1216., restframe=True)
+#            mcsed_model.remove_waverange_filters(0., 1216., restframe=True)
             # Remove filters dominated by dust emission, if applicable
             if not args.fit_dust_em:
                 mcsed_model.remove_waverange_filters(args.wave_dust_em*1e4,1e10, 

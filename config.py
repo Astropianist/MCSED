@@ -10,7 +10,7 @@ ssp = 'fsps'  # options include: 'fsps'
 isochrone = 'padova'  # options include: 'padova'
 # SFH options include: 'constant', 'burst', 'polynomial', 'exponential', 
 #                      'double_powerlaw', 'empirical_direct', 'empirical',
-sfh = 'empirical_direct'
+sfh = 'empirical_direct_z0'
 dust_law = 'noll' # options include: 'noll', 'calzetti'
 dust_em = 'DL07'  # options include: 'DL07'
 
@@ -27,7 +27,7 @@ EBV_stars_gas = -1
 # If True, fit the dust emission component. 
 # If False, remove all filters redward of rest-frame wave_dust_em microns 
 # and fix dust emission parameters to umin=2.0, gamma=0.05, qpah=2.5 
-fit_dust_em = False 
+fit_dust_em = False
 wave_dust_em = 2.5 # rest-frame wavelength in microns 
 
 # EMCEE parameters
@@ -41,7 +41,7 @@ test_zrange = (1.9, 2.35) # redshift range of test objects (uniform prior)
 # Nebular Emission Properties
 # The ionization parameter, logU, is held fixed
 add_nebular = True
-logU = -2.
+logU = -2.5
 
 # Error floor under which we don't trust the error estimates 
 # minimum photometric error (fractional uncertainty in specific flux)
@@ -65,9 +65,9 @@ use_input_data = True #False
 #           must have null value = -99
 #           must have both flux and error, i.e., cannot have flux with null error
 #           can also set to {} or None, if preferred
-# emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
-#                     'Hb' : (4861., 1.),   'Ha' : (6563., 1.)}
-emline_list_dict = {'OIII' : (5007., 1.0),'Hb' : (4861., 1.0),   'Ha' : (6563., 5.0)}
+#emline_list_dict = {}
+emline_list_dict = {'OIII' : (5007., 1.), 'Hb' : (4861., 1.), 'Ha' : (6563., 2.5)}
+#emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007.,0.5), 'Hb' : (4861., 1.), 'Ha' : (6563., 1.)}
 #emline_list_dict = {'OII'  : {'wave':3727., 'weight':0.5},
 #                    'OIII' : {'wave':5007., 'weight':0.5},  
 #                    'Hb'   : {'wave':4861., 'weight':1. },
@@ -155,7 +155,8 @@ filt_dict = {0: 'SubB.res', 1: 'SubIB427.res', 2: 'SubIB445.res',
              73: 'wircam_H.res', 74: 'wircam_J.res', 75: 'wircam_Ks.res',
              76: 'MIPS24um.res', 77: 'MIPS70um.res', 78: 'Herschel_PACS_Blue.res',
              79: 'Herschel_PACS_Green.res', 80: 'Herschel_PACS_Red.res', 81: 'herschel_spire_250um.res',
-             82: 'herschel_spire_350um.res'}
+             82: 'herschel_spire_350um.res', 83: 'Galex_NUV.res', 84: 'Galex_FUV.res',
+             85: 'Swift_UVM2.res', 86: 'Swift_UVW1.res', 87: 'Swift_UVW2.res'}
 
 # Catalog column name of filter and dictionary value to the filter file
 catalog_filter_dict, catalog_maglim_dict = {}, {}
