@@ -16,6 +16,10 @@ import scipy.interpolate as scint
 from astropy.convolution import Gaussian1DKernel, convolve
 
 
+#import matplotlib.pyplot as plt
+#plt.ioff()
+
+
 def get_coarser_wavelength_fsps(wave, spec, redwave=1e5):
     '''
     smooth the spectrum with a gaussian kernel to improve 

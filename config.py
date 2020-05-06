@@ -10,8 +10,8 @@ ssp = 'fsps'  # options include: 'fsps'
 isochrone = 'padova'  # options include: 'padova'
 # SFH options include: 'constant', 'burst', 'polynomial', 'exponential', 
 #                      'double_powerlaw', 'empirical_direct', 'empirical',
-sfh =  'empirical_direct'
-dust_law = 'noll' #'calzetti' # options include: 'noll', 'calzetti'
+sfh = 'empirical_direct'
+dust_law = 'noll' # options include: 'noll', 'calzetti'
 dust_em = 'DL07'  # options include: 'DL07'
 
 t_birth = 7. # age of the birth cloud (log years)
@@ -27,7 +27,7 @@ EBV_stars_gas = -1
 # If True, fit the dust emission component. 
 # If False, remove all filters redward of rest-frame wave_dust_em microns 
 # and fix dust emission parameters to umin=2.0, gamma=0.05, qpah=2.5 
-fit_dust_em = True
+fit_dust_em = False 
 wave_dust_em = 2.5 # rest-frame wavelength in microns 
 
 # EMCEE parameters
@@ -36,11 +36,12 @@ nsteps = 1000 # 1000
 
 # Number of test objects
 nobjects = 5
+test_zrange = (1.9, 2.35) # redshift range of test objects (uniform prior)
 
 # Nebular Emission Properties
 # The ionization parameter, logU, is held fixed
 add_nebular = True
-logU = -2.
+logU = -2.5
 
 # Error floor under which we don't trust the error estimates 
 # minimum photometric error (fractional uncertainty in specific flux)
@@ -52,6 +53,10 @@ emline_floor_error = 0.10
 # If True, use data provided in the input file
 # else, ignore input data (in which case input IDs must match Skelton+14 IDs)
 use_input_data = True #False
+ISM_correct_coords = None
+# Options for coords: 'altaz', 'barycentrictrueecliptic', 'cirs', 'fk4', 'fk4noeterms', 'fk5', 'galactic', 'galacticlsr', 'galactocentric', 'gcrs', 'geocentrictrueecliptic', 'hcrs', 'heliocentrictrueecliptic', 'icrs', 'itrs', 'lsr', 'precessedgeocentric', 'supergalactic'
+IGM_correct = False
+remove_short_filters = 1.0
 
 # Input emission line strengths
 # keys are emission line name (str)
@@ -64,8 +69,9 @@ use_input_data = True #False
 #           must have null value = -99
 #           must have both flux and error, i.e., cannot have flux with null error
 #           can also set to {} or None, if preferred
-emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
-                    'Hb' : (4861., 1.),   'Ha' : (6563., 1.)}
+# emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
+#                     'Hb' : (4861., 1.),   'Ha' : (6563., 1.)}
+emline_list_dict = {'OIII' : (5007., 1.0),'Hb' : (4861., 1.0),   'Ha' : (6563., 5.0)}
 #emline_list_dict = {'OII'  : {'wave':3727., 'weight':0.5},
 #                    'OIII' : {'wave':5007., 'weight':0.5},  
 #                    'Hb'   : {'wave':4861., 'weight':1. },
@@ -85,6 +91,9 @@ metallicity_mass_relationship = False
 # if True, metallicity is fixed at 0.0077 (38.5% solar)
 metallicity = 0.0077  # float for fixed metallicity, False for free metallicity
 
+assume_energy_balance = False #If true, use energy balance between dust attenuation and emission to normalize dust IR spectrum
+# If false, dust IR spectrum normalization is a free parameter
+
 # Output files
 # refer to XXXXX for description of each file
 #   parameters: fitted parameters for each object
@@ -97,7 +106,7 @@ output_dict = {'parameters'    : True,
                'bestfitspec'   : True,
                'fluxdensity'   : True,
                'lineflux'      : True,
-               'triangle plot' : True,
+               'triangle plot' : False,
                'sample plot'   : False,
                'image format'  : 'png'}
 # WPBWPB: combine photfluxes into single file, also add emline flux comparison
@@ -149,8 +158,9 @@ filt_dict = {0: 'SubB.res', 1: 'SubIB427.res', 2: 'SubIB445.res',
              70: 'newfirm_H1.res', 71: 'newfirm_H2.res', 72: 'newfirm_Ks.res',
              73: 'wircam_H.res', 74: 'wircam_J.res', 75: 'wircam_Ks.res',
              76: 'MIPS24um.res', 77: 'MIPS70um.res', 78: 'Herschel_PACS_Blue.res',
-             79: 'Herschel_PACS_Green.res', 80: 'Herschel_PACS_Red.res', 81: 'herschel-spire-250um.res',
-             82: 'herschel-spire-350um.res'}
+             79: 'Herschel_PACS_Green.res', 80: 'Herschel_PACS_Red.res', 81: 'herschel_spire_250um.res',
+             82: 'herschel_spire_350um.res', 83: 'Galex_NUV.res', 84: 'Galex_FUV.res',
+             85: 'Swift_UVM2.res', 86: 'Swift_UVW1.res', 87: 'Swift_UVW2.res'}
 
 # Catalog column name of filter and dictionary value to the filter file
 catalog_filter_dict, catalog_maglim_dict = {}, {}
