@@ -10,7 +10,7 @@ ssp = 'fsps'  # options include: 'fsps'
 isochrone = 'padova'  # options include: 'padova'
 # SFH options include: 'constant', 'burst', 'polynomial', 'exponential', 
 #                      'double_powerlaw', 'empirical_direct', 'empirical',
-sfh = 'empirical_direct_z0'
+sfh = 'empirical_direct'
 dust_law = 'noll' # options include: 'noll', 'calzetti'
 dust_em = 'DL07'  # options include: 'DL07'
 
@@ -27,7 +27,7 @@ EBV_stars_gas = -1
 # If True, fit the dust emission component. 
 # If False, remove all filters redward of rest-frame wave_dust_em microns 
 # and fix dust emission parameters to umin=2.0, gamma=0.05, qpah=2.5 
-fit_dust_em = False
+fit_dust_em = False 
 wave_dust_em = 2.5 # rest-frame wavelength in microns 
 
 # EMCEE parameters
@@ -53,6 +53,10 @@ emline_floor_error = 0.10
 # If True, use data provided in the input file
 # else, ignore input data (in which case input IDs must match Skelton+14 IDs)
 use_input_data = True #False
+ISM_correct_coords = None
+# Options for coords: 'altaz', 'barycentrictrueecliptic', 'cirs', 'fk4', 'fk4noeterms', 'fk5', 'galactic', 'galacticlsr', 'galactocentric', 'gcrs', 'geocentrictrueecliptic', 'hcrs', 'heliocentrictrueecliptic', 'icrs', 'itrs', 'lsr', 'precessedgeocentric', 'supergalactic'
+IGM_correct = False
+remove_short_filters = 1.0
 
 # Input emission line strengths
 # keys are emission line name (str)
@@ -65,9 +69,9 @@ use_input_data = True #False
 #           must have null value = -99
 #           must have both flux and error, i.e., cannot have flux with null error
 #           can also set to {} or None, if preferred
-#emline_list_dict = {}
-emline_list_dict = {'OIII' : (5007., 1.), 'Hb' : (4861., 1.), 'Ha' : (6563., 2.5)}
-#emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007.,0.5), 'Hb' : (4861., 1.), 'Ha' : (6563., 1.)}
+# emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
+#                     'Hb' : (4861., 1.),   'Ha' : (6563., 1.)}
+emline_list_dict = {'OIII' : (5007., 1.0),'Hb' : (4861., 1.0),   'Ha' : (6563., 5.0)}
 #emline_list_dict = {'OII'  : {'wave':3727., 'weight':0.5},
 #                    'OIII' : {'wave':5007., 'weight':0.5},  
 #                    'Hb'   : {'wave':4861., 'weight':1. },
