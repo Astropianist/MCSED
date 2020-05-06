@@ -32,26 +32,16 @@ import time
 from astropy.table import Table
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
-
 import numpy as np
+import ISMextinction as ism
+import IGMextinction as igm
 
-
-
-#import matplotlib.pyplot as plt
-#plt.ioff()
-
-
-
-#WPBWPB re organize the arguments (aesthetic purposes)
 class Mcsed:
-    def __init__(self, filter_matrix, ssp_spectra,
-                 emlinewave, ssp_emline, ssp_ages, ssp_masses,
-                 ssp_met, wave, sfh_class, dust_abs_class, dust_em_class,
-                 data_fnu=None, data_fnu_e=None, 
-                 data_emline=None, data_emline_e=None, emline_dict=None,
-                 redshift=None,
-                 filter_flag=None, input_spectrum=None, input_params=None,
-                 sigma_m=0.1, nwalkers=40, nsteps=1000, true_fnu=None):
+    def __init__(self, filter_matrix, ssp_spectra, emlinewave, ssp_emline, 
+                 ssp_ages, ssp_masses, ssp_met, wave, sfh_class, dust_abs_class,
+                 dust_em_class, ISM_correct, IGM_correct, data_fnu=None, data_fnu_e=None, 
+                 data_emline=None, data_emline_e=None, emline_dict=None, redshift=None, 
+                 filter_flag=None, input_spectrum=None, input_params=None, sigma_m=0.1, nwalkers=40, nsteps=1000, true_fnu=None, ebv_MW=None):
         ''' Initialize the Mcsed class.
 
         Init
@@ -90,6 +80,10 @@ class Mcsed:
         dust_em_class : str
             Converted from str to class in initialization
             This is the input class for dust absorption.
+        ISM_correct : bool
+            Whether or not a Milky Way dust correction should be made
+        IGM_correct : bool
+            Whether or not a statistical IGM correction should be made
         data_fnu : numpy array (1 dim)
             Photometry for data.  Length = (filter_flag == True).sum()
 WPBWPB units + are dimensions correct??
@@ -123,6 +117,8 @@ WPBWPB units + are dimensions correct??
         nsteps : int
             The number of steps each walker will make when fitting a model
         true_fnu : WPBWPB FILL IN
+        ebv_MW : float
+            The differential reddening E(B-V) caused by dust in the MW along the line of sight
 
 WPBWPB: describe self.t_birth, set using args and units of Gyr
         '''
@@ -141,6 +137,8 @@ WPBWPB: describe self.t_birth, set using args and units of Gyr
 # WPBWPB: is ssp_class used?
         self.ssp_class = getattr(ssp, 'fsps_freeparams')()
         self.dust_em_class = getattr(dust_emission, dust_em_class)()
+        self.ISM_correct = ISM_correct
+        self.IGM_correct = IGM_correct
 # WPBWPB: describe SSP, lineSSP in comments... 
 # ssp_spectra span many metallicities, SSP only span ages
         self.SSP = None
@@ -161,15 +159,15 @@ WPBWPB: describe self.t_birth, set using args and units of Gyr
         self.nwalkers = nwalkers
         self.nsteps = nsteps
         self.true_fnu = true_fnu
+        self.ebv_MW = ebv_MW
         if self.redshift is not None:
             self.set_new_redshift(self.redshift)
 
         # Set up logging
         self.setup_logging()
-
         # Time array for sfh
         self.age_eval = np.logspace(-3, 1, 4000)
-
+        
     def set_new_redshift(self, redshift):
         ''' Setting redshift
 
@@ -513,6 +511,14 @@ WPBWPB units??
         # Redshift to observed frame
         csp = np.interp(self.wave, self.wave * (1. + self.redshift),
                         spec_dustobscured * (1. + self.redshift))
+
+        # Correct for ISM and/or IGM (or neither)
+        if self.IGM_correct:
+            igmext = igm.IGMextinct(self.redshift,self.wave)
+#            csp = igmext.extinguish(csp)
+        if self.ebv_MW is not None:
+            ismext = ism.ISMextinct(self.wave,self.ebv_MW)
+#            csp = ismext.extinguish(csp)
 
         # Update dictionary of modeled emission line fluxes
         linefluxCSPdict = {}
