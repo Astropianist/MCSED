@@ -14,6 +14,8 @@ from astropy.table import Table, vstack
 from mcsed import Mcsed
 from distutils.dir_util import mkpath
 from cosmology import Cosmology
+import warnings
+warnings.filterwarnings("ignore")
 
 def setup_logging():
     '''Setup Logging for MCSED, which allows us to track status of calls and
@@ -419,6 +421,8 @@ def get_MW_EBV(args):
     coords = SkyCoord(C1, C2, unit='deg', frame=args.ISM_correct_coords.lower())
     sfd = SFDWebQuery()
     ebv = sfd(coords)
+    print("E(B-V) for Milky Way lines of sight:")
+    print(ebv)
     return ebv
             
 def read_input_file(args):

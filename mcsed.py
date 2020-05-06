@@ -35,6 +35,8 @@ from scipy.interpolate import interp1d
 import numpy as np
 import ISMextinction as ism
 import IGMextinction as igm
+import warnings
+warnings.filterwarnings("ignore")
 
 class Mcsed:
     def __init__(self, filter_matrix, ssp_spectra, emlinewave, ssp_emline, 
