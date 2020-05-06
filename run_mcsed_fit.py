@@ -14,8 +14,7 @@ from astropy.table import Table, vstack
 from mcsed import Mcsed
 from distutils.dir_util import mkpath
 from cosmology import Cosmology
-import warnings
-warnings.filterwarnings("ignore")
+from scipy.interpolate import interp1d, interp2d
 
 def setup_logging():
     '''Setup Logging for MCSED, which allows us to track status of calls and
@@ -760,6 +759,17 @@ def main(argv=None, ssp_info=None):
     else:
         input_file_data = None
 
+    # Get IGM and/or ISM correction files read if necessary
+    # IGM: first row is wavelength; first column is redshift; everything else is effective optical depth
+    if args.IGM_correct:
+        fulltauIGM = np.loadtxt("IGM_tau_z_0_4.dat")
+        assert len(fulltauIGM[0,1:])>len(fulltauIGM[1:,0]) # Make sure we are reading this in properly
+        tauIGMf = interp2d(fulltauIGM[0,1:],fulltauIGM[1:,0],fulltauIGM[1:,1:],bounds_error=False,fill_value=0.0)
+    # ISM: first column is wavelength; second column is A_lambda / E(B-V) = R_lambda
+    if args.ISM_correct:
+        wavISM, Rlam = np.loadtxt("Rlam_31.dat", unpack=True)
+        tauISMf = interp1d(wavISM,Rlam,bounds_error=False,fill_value=(max(Rlam),0.0))
+
     # Build Filter Matrix
     filter_matrix = build_filter_matrix(args, wave)
 
@@ -767,8 +777,7 @@ def main(argv=None, ssp_info=None):
     # Then replace the key variables each iteration for a given galaxy
     mcsed_model = Mcsed(filter_matrix, SSP, linewave, lineSSP, ages, 
                         masses, met, wave, args.sfh, args.dust_law, 
-                        args.dust_em, args.ISM_correct, args.IGM_correct, 
-                        nwalkers=args.nwalkers, nsteps=args.nsteps)
+                        args.dust_em, nwalkers=args.nwalkers, nsteps=args.nsteps)
 
     # Communicate emission line measurement preferences
     mcsed_model.use_emline_flux = args.use_emline_flux
@@ -916,8 +925,16 @@ def main(argv=None, ssp_info=None):
             mcsed_model.set_new_redshift(zi)
             mcsed_model.data_emline = emi
             mcsed_model.data_emline_e = emie
-            if ebvi>1.0e-12: #No point in doing anything around 0, especially if no corrections wanted
-                mcsed_model.ebv_MW = ebvi
+            if ebvi>1.0e-12: # Only for when there is a nonzero E(B-V) Milky Way value to be fit
+                TauISM_lam = ebvi*tauISMf(wave)
+                mcsed_model.TauISM_lam = TauISM_lam
+            else:
+                mcsed_model.TauISM_lam = None
+            if args.IGM_correct:
+                TauIGM_lam = tauIGMf(wave,zi).reshape(len(wave))
+                mcsed_model.TauIGM_lam = TauIGM_lam
+            else:
+                mcsed_model.TauIGM_lam = None
 
             # Remove filters containing a given wavelength or shorter
             if args.remove_short_filters>100.0: 
