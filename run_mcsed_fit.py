@@ -926,7 +926,7 @@ def main(argv=None, ssp_info=None):
             mcsed_model.data_emline = emi
             mcsed_model.data_emline_e = emie
             if ebvi>1.0e-12: # Only for when there is a nonzero E(B-V) Milky Way value to be fit
-                TauISM_lam = ebvi*tauISMf(wave)
+                TauISM_lam = ebvi*tauISMf(wave)/1.086
                 mcsed_model.TauISM_lam = TauISM_lam
             else:
                 mcsed_model.TauISM_lam = None
