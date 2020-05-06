@@ -515,10 +515,10 @@ WPBWPB units??
         # Correct for ISM and/or IGM (or neither)
         if self.IGM_correct:
             igmext = igm.IGMextinct(self.redshift,self.wave)
-#            csp = igmext.extinguish(csp)
+            csp = igmext.extinguish(csp)
         if self.ebv_MW is not None:
             ismext = ism.ISMextinct(self.wave,self.ebv_MW)
-#            csp = ismext.extinguish(csp)
+            csp = ismext.extinguish(csp)
 
         # Update dictionary of modeled emission line fluxes
         linefluxCSPdict = {}
