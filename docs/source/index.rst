@@ -3,28 +3,50 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+*******************
 MCSED Documentation
-===================
+*******************
+
+Getting Started
+===============
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
    
    Overview
    Installation
    MCSED Command-line Options
    Specifying Parameters
+
+Libraries and Input Information
+===============================
+.. toctree::
+   :maxdepth: 3
+
    Built-in Libraries
    Input Files
    Fitting Parameters
+
+Running MCSED and Understanding Outputs
+=======================================
+.. toctree::
+   :maxdepth: 3
+
    Running MCSED
    Outputs
    Summary of Important Variables
 
+References
+==========
+.. toctree::
+   :maxdepth: 1
 
-Indices and tables
-==================
+   References
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+.. Indices and tables
+.. ==================
+
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
