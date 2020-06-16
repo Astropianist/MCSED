@@ -9,7 +9,7 @@
 ssp = 'fsps'          # options include: 'fsps'
 isochrone = 'padova'  # options include: 'padova'
 # SFH options include: 'constant', 'burst', 'polynomial', 'exponential', 
-#                      'double_powerlaw', 'binned_lsfr', 'binned_fmass'
+#                      'double_powerlaw', 'binned_lsfr'
 sfh = 'binned_lsfr' 
 dust_law = 'calzetti'   # options include: 'noll', 'calzetti', 'reddy', 
                         #                  'conroy', 'cardelli'
@@ -30,7 +30,7 @@ Rv = -1
 # E(B-V)_diffuse = EBV_old_young * E(B-V)_birth
 EBV_old_young = 0.44
 
-t_birth = 8. # age of the birth cloud (log years)
+t_birth = 7. # age of the birth cloud (log years)
 
 # Ignore photometry, as appropriate
 # blue_wave_cutoff: ignore filters containing Lyman-alpha
@@ -39,6 +39,15 @@ t_birth = 8. # age of the birth cloud (log years)
 blue_wave_cutoff = 1216. # rest-frame wavelength in Angstroms 
 wave_dust_em     = 2.5   # rest-frame wavelength in microns 
 
+# If False, leave metallicity as a free parameter
+# else, must be float: fixed metallicity of SSP models
+# if True, metallicity is fixed at 0.0077 (where Zsolar = 0.019)
+metallicity = 0.0077 #False #0.0077 
+
+# Nebular Emission Properties
+# The ionization parameter, logU, is held fixed
+logU = -2.
+
 # EMCEE parameters
 nwalkers = 100 
 nsteps   = 1000 
@@ -46,10 +55,6 @@ nsteps   = 1000
 # Number of test objects
 nobjects = 5
 test_zrange = (0.6, 1.9) # redshift range of test objects (uniform prior)
-
-# Nebular Emission Properties
-# The ionization parameter, logU, is held fixed
-logU = -2.
 
 # minimum fractional errors in observed photometry, 
 # emission line fluxes, and absorption line indices 
@@ -64,7 +69,37 @@ model_floor_error = 0.10
 # Use input data (photometry, emission lines, absorption line indices)
 # If True, use additional data provided in the input file
 # else, ignore input data (in which case input IDs must match Skelton+14 IDs)
-use_input_data = False # True 
+use_input_data = True 
+
+# ISM/IGM correction
+ISM_correct_coords = None # if None, do not apply an ISM correction
+# Options for coords: 'altaz', 'barycentrictrueecliptic', 'cirs', 'fk4', 
+#                     'fk4noeterms', 'fk5', 'galactic', 'galacticlsr', 
+#                     'galactocentric', 'gcrs', 'geocentrictrueecliptic', 
+#                     'hcrs', 'heliocentrictrueecliptic', 'icrs', 'itrs', 
+#                     'lsr', 'precessedgeocentric', 'supergalactic'
+IGM_correct = False
+
+
+# Output files
+#   Supported image formats: eps, pdf, pgf, png, ps, raw, rgba, svg, svgz
+output_dict = {'parameters'    : True,   # fitted parameters
+               'settings'      : True,   # user-defined fitting assumptions
+               'fitposterior'  : True,  # parameter posterior distributions
+               'bestfitspec'   : True,   # best-fit SED model
+               'fluxdensity'   : True,   # modeled and observed photometry
+               'lineflux'      : True,   # modeled and observed emission lines
+               'absorption'    : True,   # modeled, observed absorption indices
+               'triangle plot' : True,   # summary diagnostic plot
+               'sample plot'   : True,  # parameter estimates for MCMC chains
+               'template spec' : True,   # save a plot of SSP spectra 
+               'image format'  : 'png'}  # image type for plots
+
+# percentiles of each parameter to report in the output file
+param_percentiles = [5, 16, 50, 84, 95]
+
+# When running in parallel mode, utilize (Total cores) - reserved_cores
+reserved_cores = 2 # integer
 
 # Input emission line strengths
 # keys are emission line name (str) corresponding to name in input file
@@ -84,31 +119,6 @@ emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
                    }
 
 emline_factor = 1e-17 # numerical conversion from input values to units ergs/cm2/s
-
-# If False, leave metallicity as a free parameter
-# else, must be float: fixed metallicity of SSP models
-# if True, metallicity is fixed at 0.0077 (where Zsolar = 0.019)
-metallicity = 0.0077 #False #0.0077 
-
-# Output files
-#   Supported image formats: eps, pdf, pgf, png, ps, raw, rgba, svg, svgz
-output_dict = {'parameters'    : True,   # fitted parameters
-               'settings'      : True,   # user-defined fitting assumptions
-               'fitposterior'  : False,  # parameter posterior distributions
-               'bestfitspec'   : True,   # best-fit SED model
-               'fluxdensity'   : True,   # modeled and observed photometry
-               'lineflux'      : True,   # modeled and observed emission lines
-               'absorption'    : True,   # modeled, observed absorption indices
-               'triangle plot' : True,   # summary diagnostic plot
-               'sample plot'   : False,  # parameter estimates for MCMC chains
-               'template spec' : True,   # save a plot of SSP spectra 
-               'image format'  : 'png'}  # image type for plots
-
-# percentiles of each parameter to report in the output file
-param_percentiles = [5, 16, 50, 84, 95]
-
-# When running in parallel mode, utilize (Total cores) - reserved_cores
-reserved_cores = 6 # integer
 
 # Input absorption line indices
 # keys are index name (str) corresponding to name in input file

@@ -11,6 +11,7 @@ import numpy as np
 import os.path as op
 import logging
 import config
+import ism_igm
 from ssp import read_ssp_fsps
 from astropy.io import fits
 from astropy.table import Table, vstack
@@ -152,6 +153,16 @@ def parse_args(argv=None):
                         help='''Number of test objects''',
                         type=int, default=None)
 
+    parser.add_argument("-ism", "--ISM_correct_coords",
+                        help='''If a coordinate system is given, MW dust correction will
+                        be performed; default None''',
+                        type=str, default=None)
+
+    parser.add_argument("-igm", "--IGM_correct",
+                        help='''If selected, Madau statistical IGM correction will be done
+                        (affecting wavelengths up to rest-frame Ly-alpha)''',
+                        action="count", default=0)
+
     # Initialize arguments and log
     args = parser.parse_args(args=argv)
     args.log = setup_logging()
@@ -170,7 +181,8 @@ def parse_args(argv=None):
                   'dust_em', 'Rv', 'EBV_old_young', 'wave_dust_em',
                   'emline_list_dict', 'emline_factor', 'use_input_data',
                   'absorption_index_dict',
-                  'output_dict', 'param_percentiles', 'reserved_cores', 'assume_energy_balance']
+                  'output_dict', 'param_percentiles', 'reserved_cores', 
+                  'assume_energy_balance', 'ISM_correct_coords', 'IGM_correct']
     for arg_i in arg_inputs:
         try:
             if getattr(args, arg_i) in [None, 0]:
@@ -189,6 +201,17 @@ def parse_args(argv=None):
     # If a test field is specified on the command line, initialize test mode
     if '-tf' in argv:
         args.test = True
+
+    # If coords is not None, ISM correction will be performed
+    if args.ISM_correct_coords is not None: 
+        args.ISM_correct = True
+    else:
+        args.ISM_correct = False
+
+    # ignore ISM/IGM corrections in test mode
+    if args.test:
+        args.ISM_correct = False
+        args.IGM_correct = False
 
     # Set the maximum SSP age (speeds calculation)
     args.max_ssp_age = get_max_ssp_age(args)
@@ -232,9 +255,14 @@ def parse_args(argv=None):
         args.absorption_index_dict={}
 
     # Set up dust emission arguments
-    if not args.dust_em:
+    if isinstance(args.dust_em, str):
+        args.fit_dust_em = True
+    elif args.dust_em==True:
         args.dust_em = 'DL07'
-        args.fit_dust_em = False 
+        args.fit_dust_em = True
+    else:
+        args.dust_em = 'DL07'
+        args.fit_dust_em = False
 
     return args
 
@@ -679,9 +707,14 @@ WPBWPB: modify, document all outputs
     for theta, z in zip(thetas, zobs):
         mcsed_model.set_class_parameters(theta)
         mcsed_model.set_new_redshift(z)
-        mcsed_model.spectrum, mass = mcsed_model.build_csp()
-## WPBWPB adjust log info.....
-#        args.log.info('%0.2f, %0.2f' % (hlims[-1]*1e17, np.log10(mass)))
+        if mcsed_model.dust_em_class.assume_energy_balance:
+            mcsed_model.spectrum, mass, mdust_eb = mcsed_model.build_csp()
+        else:
+            mcsed_model.spectrum, mass = mcsed_model.build_csp()
+            mdust_eb = None
+        sfr10,sfr100,fpdr = mcsed_model.get_derived_params()
+
+        args.log.info('%0.2f' % (np.log10(mass)))
         f_nu = mcsed_model.get_filter_fluxdensities()
         if args.test_field in args.catalog_maglim_dict.keys():
             f_nu_e = get_maglim_filters(args)[mcsed_model.filter_flag]
@@ -691,7 +724,11 @@ WPBWPB: modify, document all outputs
         y.append(f_nu_e*np.random.randn(len(f_nu)) + f_nu)
         yerr.append(f_nu_e)
         true_y.append(f_nu)
-        params.append(list(theta) + [np.log10(mass)])
+        derived_param_list = [np.log10(mass)]
+        for par in [sfr10, sfr100, fpdr, mdust_eb]:
+            if par is not None:
+                derived_param_list.append( np.log10(par) )
+        params.append(list(theta) + derived_param_list)
 
     return y, yerr, zobs, params, true_y
 
@@ -775,6 +812,12 @@ def main(argv=None, ssp_info=None):
         input_file_data = read_input_file(args) 
     else:
         input_file_data = None
+
+    # Get ISM and/or ISM correction
+    if args.IGM_correct:
+        tauIGMf = ism_igm.get_tauIGMf()
+    if args.ISM_correct:
+        tauISMf = ism_igm.get_tauISMf()
 
     # Build Filter Matrix
     filter_matrix = build_filter_matrix(args, wave)
@@ -863,9 +906,6 @@ def main(argv=None, ssp_info=None):
         names.append('fPDR')
     if mcsed_model.dust_em_class.assume_energy_balance:
         names.append("Mdust_EB")
-    names.append('t10')
-    names.append('t50')
-    names.append('t90')
 
     percentiles = args.param_percentiles 
     # WPB field/id
@@ -931,9 +971,14 @@ def main(argv=None, ssp_info=None):
             mcsed_model.fit_model()
             mcsed_model.set_median_fit()
             if args.output_dict['sample plot']:
-                mcsed_model.sample_plot('output/sample_fake_%05d' % (cnt))
+                mcsed_model.sample_plot('output/sample_fake_%05d_%s_%s' % 
+                                        (cnt, args.sfh, args.dust_law),
+                                        imgtype = args.output_dict['image format'])
+
             if args.output_dict['triangle plot']:
-                mcsed_model.triangle_plot('output/triangle_fake_%05d_%s_%s' % (cnt, args.sfh, args.dust_law))
+                mcsed_model.triangle_plot('output/triangle_fake_%05d_%s_%s' % 
+                                          (cnt, args.sfh, args.dust_law),
+                                          imgtype = args.output_dict['image format'])
             mcsed_model.table.add_row(['Test', cnt, zi] + [0.]*(len(labels)-3))
             print("Reached point before adding fit info to table")
             last = mcsed_model.add_fitinfo_to_table(percentiles)
@@ -941,6 +986,29 @@ def main(argv=None, ssp_info=None):
             mcsed_model.add_truth_to_table(tr, last)
             print("Reached point after adding truth info to table")
             print(mcsed_model.table)
+
+            names.append('Ln Prob')
+            if args.output_dict['fitposterior']:
+                print('these are names:')
+                print(names)
+                print('heres a few samples:')
+                print(mcsed_model.samples[-5:])
+                T = Table(mcsed_model.samples, names=names)
+                T.write('output/fitposterior_fake_%05d_%s_%s.dat' % (cnt, args.sfh, args.dust_law),
+                        overwrite=True, format='ascii.fixed_width_two_line')
+            if args.output_dict['bestfitspec']:
+                T = Table([mcsed_model.wave, mcsed_model.medianspec],
+                          names=['wavelength', 'spectrum'])
+                T.write('output/bestfitspec_fake_%05d_%s_%s.dat' % (cnt, args.sfh, args.dust_law),
+                        overwrite=True, format='ascii.fixed_width_two_line')
+            if args.output_dict['fluxdensity']:
+                T = Table([mcsed_model.fluxwv, mcsed_model.fluxfn,
+                           mcsed_model.data_fnu, mcsed_model.data_fnu_e, mcsed_model.true_fnu],
+                           names=['wavelength','model_fluxdensity',
+                                  'fluxdensity', 'fluxdensityerror','true_fluxdensity'])
+                T.write('output/filterflux_fake_%05d_%s_%s.dat' % (cnt, args.sfh, args.dust_law),
+                        overwrite=True, format='ascii.fixed_width_two_line')
+
     else:
     # WPB field/id
         # read input file, if not already done
@@ -948,6 +1016,11 @@ def main(argv=None, ssp_info=None):
             y, yerr, z, flag, objid, field, em, emerr, absindx, absindx_e = read_input_file(args)
         else:
             y, yerr, z, flag, objid, field, em, emerr, absindx, absindx_e = input_file_data
+
+        if args.ISM_correct:
+            ebv_MW = ism_igm.get_MW_EBV(args)
+        else:
+            ebv_MW = np.zeros(len(y))
 
 #        print(yerr[y>0])
 #        print((z,flag,objid,field,em,emerr, absindx, absindx_e))
@@ -964,8 +1037,9 @@ def main(argv=None, ssp_info=None):
 # WPBWPB delete
 #        print(iv)
         #return
-        for yi, ye, zi, fl, oi, fd, emi, emie, indx, indxe in zip(y, yerr, z, flag, objid,
-                                                                  field, em, emerr, absindx, absindx_e):
+        for yi, ye, zi, fl, oi, fd, emi, emie, indx, indxe, ebvi in zip(y, yerr, z, flag, 
+                                                                        objid, field, em, emerr,
+                                                                        absindx, absindx_e, ebv_MW):
 #            print('starting the first one')
 #            print((yi, ye, zi, fl, oi, fd, emi, emie, indx, indxe))
             mcsed_model.filter_flag = fl
@@ -991,6 +1065,18 @@ def main(argv=None, ssp_info=None):
 #            Ebwave, dwave = 2175, 225
 #            mcsed_model.remove_waverange_filters( Ebwave-dwave, Ebwave+dwave, restframe=True )
 
+            if ebvi>1.0e-12: # Only for when there is a nonzero E(B-V) Milky Way value to be fit
+                TauISM_lam = ebvi*tauISMf(mcsed_model.wave)/1.086
+                mcsed_model.TauISM_lam = TauISM_lam
+            else:
+                mcsed_model.TauISM_lam = None
+            if args.IGM_correct:
+                TauIGM_lam = tauIGMf(mcsed_model.wave,mcsed_model.redshift)
+                TauIGM_lam.reshape(len(mcsed_model.wave))
+                mcsed_model.TauIGM_lam = TauIGM_lam
+            else:
+                mcsed_model.TauIGM_lam = None
+
             mcsed_model.fit_model()
             print('i have fit the model')
 
@@ -1009,15 +1095,11 @@ def main(argv=None, ssp_info=None):
             if args.output_dict['sample plot']:
                 mcsed_model.sample_plot('output/sample_%s_%05d' % (fd, oi),
                                         imgtype = args.output_dict['image format'])
-# WPBWPB delete
-                #mcsed_model.sample_plot('output/sample_%s_%05d_%s' % (fd, oi, args.output_filename.split(".")[0]),imgtype = args.output_dict['image format'])
 
             if args.output_dict['triangle plot']:
                 mcsed_model.triangle_plot('output/triangle_%s_%05d_%s_%s' %
                                           (fd, oi, args.sfh, args.dust_law),
                                           imgtype = args.output_dict['image format'])
-# WPBWPB delete
-                #mcsed_model.triangle_plot('output/triangle_%s_%05d_%s_%s_%s' % (fd, oi, args.sfh, args.dust_law, args.output_filename.split(".")[0]), imgtype = args.output_dict['image format'])
 
             mcsed_model.table.add_row([fd, oi, zi] + [0.]*(len(labels)-3))
             names = mcsed_model.get_param_names()
@@ -1030,18 +1112,19 @@ def main(argv=None, ssp_info=None):
                 names.append('Mdust_EB')
             names.append('Ln Prob')
             if args.output_dict['fitposterior']: 
+                print('these are names:')
+                print(names)
+                print('heres a few samples:')
+                print(mcsed_model.samples[-5:])
+
                 T = Table(mcsed_model.samples, names=names)
                 T.write('output/fitposterior_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
                         overwrite=True, format='ascii.fixed_width_two_line')
-# WPBWPB delete
-                #T.write('output/fitposterior_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law, args.output_filename.split(".")[0]), overwrite=True, format='ascii.fixed_width_two_line')
             if args.output_dict['bestfitspec']:
                 T = Table([mcsed_model.wave, mcsed_model.medianspec],
                           names=['wavelength', 'spectrum'])
                 T.write('output/bestfitspec_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
                         overwrite=True, format='ascii.fixed_width_two_line')
-# WPBWPB delete
-                #T.write('output/bestfitspec_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law, args.output_filename.split(".")[0]), overwrite=True, format='ascii.fixed_width_two_line')
             if args.output_dict['fluxdensity']:
                 T = Table([mcsed_model.fluxwv, mcsed_model.fluxfn,
                            mcsed_model.data_fnu, mcsed_model.data_fnu_e],
@@ -1049,11 +1132,7 @@ def main(argv=None, ssp_info=None):
                                   'fluxdensity', 'fluxdensityerror'])
                 T.write('output/filterflux_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
                         overwrite=True, format='ascii.fixed_width_two_line')
-# WPBWPB delete
-                #T.write('output/filterflux_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law, args.output_filename.split(".")[0]), overwrite=True, format='ascii.fixed_width_two_line')
             if (args.output_dict['lineflux']) & (mcsed_model.use_emline_flux):
-#                emwaves = np.array(mcsed_model.emline_dict.values())[:,0]
-#                emweights = np.array(mcsed_model.emline_dict.values())[:,1]
                 emlines = list(mcsed_model.emline_dict.keys())
                 emwaves, wht, model_fl, fl, fle = [], [], [], [], []
                 for emline in emlines:
@@ -1069,8 +1148,6 @@ def main(argv=None, ssp_info=None):
                 if len(T):
                     T.write('output/lineflux_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
                             overwrite=True, format='ascii.fixed_width_two_line')
-# WPBWPB delete
-                #T.write('output/lineflux_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law, args.output_filename.split(".")[0]), overwrite=True, format='ascii.fixed_width_two_line')
             if (args.output_dict['absorption']) & (mcsed_model.use_absorption_indx):
                 abs_names = list(mcsed_model.absindx_dict.keys())
                 # each name: name, weight, modeled, measured, error
