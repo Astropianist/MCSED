@@ -18,9 +18,9 @@ dust_law = 'calzetti'   # options include: 'noll', 'calzetti', 'reddy',
 # if False, do not fit for dust emission component and remove all filters 
 #           redward of rest-frame wave_dust_em microns  (defined below)
 # else, set to string of desired dust emission class 
-dust_em = False # options include: 'DL07', False 
+dust_em = 'DL07' # options include: 'DL07', False 
 # Assume energy balance or normalize the dust IR spectrum as a free parameter
-assume_energy_balance = False
+assume_energy_balance = True
 
 # Dust attenuation law parameters
 # extinction factor (if negative, use default value for dust law of choice)
@@ -36,7 +36,7 @@ t_birth = 7. # age of the birth cloud (log years)
 # blue_wave_cutoff: ignore filters containing Lyman-alpha
 # wave_dust_em:     if not fitting dust emission component, ignore photometry
 #                   dominated by dust emission
-blue_wave_cutoff = 1216. # rest-frame wavelength in Angstroms 
+blue_wave_cutoff = 700.0 # rest-frame wavelength in Angstroms 
 wave_dust_em     = 2.5   # rest-frame wavelength in microns 
 
 # If False, leave metallicity as a free parameter
