@@ -20,7 +20,7 @@ dust_law = 'calzetti'   # options include: 'noll', 'calzetti', 'reddy',
 # else, set to string of desired dust emission class 
 dust_em = 'DL07' # options include: 'DL07', False 
 # Assume energy balance or normalize the dust IR spectrum as a free parameter
-assume_energy_balance = True
+assume_energy_balance = False
 
 # Dust attenuation law parameters
 # extinction factor (if negative, use default value for dust law of choice)
@@ -85,21 +85,21 @@ IGM_correct = False
 #   Supported image formats: eps, pdf, pgf, png, ps, raw, rgba, svg, svgz
 output_dict = {'parameters'    : True,   # fitted parameters
                'settings'      : True,   # user-defined fitting assumptions
-               'fitposterior'  : True,  # parameter posterior distributions
+               'fitposterior'  : False,  # parameter posterior distributions
                'bestfitspec'   : True,   # best-fit SED model
                'fluxdensity'   : True,   # modeled and observed photometry
                'lineflux'      : True,   # modeled and observed emission lines
-               'absorption'    : True,   # modeled, observed absorption indices
-               'triangle plot' : True,   # summary diagnostic plot
-               'sample plot'   : True,  # parameter estimates for MCMC chains
-               'template spec' : True,   # save a plot of SSP spectra 
+               'absorption'    : False,   # modeled, observed absorption indices
+               'triangle plot' : False,   # summary diagnostic plot
+               'sample plot'   : False,  # parameter estimates for MCMC chains
+               'template spec' : False,   # save a plot of SSP spectra 
                'image format'  : 'png'}  # image type for plots
 
 # percentiles of each parameter to report in the output file
 param_percentiles = [5, 16, 50, 84, 95]
 
 # When running in parallel mode, utilize (Total cores) - reserved_cores
-reserved_cores = 2 # integer
+reserved_cores = 0 # integer
 
 # Input emission line strengths
 # keys are emission line name (str) corresponding to name in input file
