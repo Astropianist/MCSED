@@ -432,7 +432,8 @@ class exponential:
         age : float
             Age of the galaxy when observed in log Gyrs
         tau: float
-            Amount of time in log Gyrs for star formation rate to change (increase or decrease) by a factor of e (like a scale height)
+            Amount of time in log Gyrs for star formation rate to change 
+            (increase or decrease) by a factor of e (like a scale height)
         logsfr_lims : list
             A two valued list for lower and upper boundary values for logsfr
         age_lims : list
@@ -446,8 +447,10 @@ class exponential:
         tau_delta : float
             sigma to draw from a normal distribution when simulating galaxies
         sign: float
-            If sign is positive (ex: 1.0), SFR increases exponentially with time moving forward (exponential decay with lookback time)
-            If sign is negative (ex: -1.0), SFR decreases exponentially with time moving forward (exponential growth with lookback time)
+            If sign is positive (ex: 1.0), SFR increases exponentially with 
+            time moving forward (exponential decay with lookback time)
+            If sign is negative (ex: -1.0), SFR decreases exponentially with 
+            time moving forward (exponential growth with lookback time)
         '''
         self.logsfr = logsfr
         self.age = age
@@ -585,7 +588,6 @@ class double_powerlaw:
             A two valued list for lower and upper boundary values for c
         age_delta : float
             sigma to draw from a normal distribution when simulating galaxies
-WPBWPB add: _delta for remaining parameters
         '''
         self.tau = tau
         self.a = a
@@ -701,8 +703,6 @@ class binned_lsfr:
                  init_log_sfr_delta=0.7,
                  ages=[8., 8.5, 9., 9.5, 9.8, 10.12]):
         ''' Initialize this class
-                 ages=[8., 8.5, 9., 9.5, 9.8, 10.12]):
-                 ages=[8., 8.5, 9., 9.3]):
 
         Parameters
         ----------
@@ -715,7 +715,8 @@ class binned_lsfr:
             sigma to draw from a normal distribution when simulating galaxies
         ages: list
             Right-hand side of (lookback) time bins in log yrs (NOT Gyrs)
-            For example, if ages[0]=8., the first time bin is the last 100 million years (till the time of observation)
+            For example, if ages[0]=8., the first time bin is the last 100 million years 
+            (until the time of observation)
         '''
         self.ages = ages
         self.nums = np.arange(1, self.get_nparams()+1, dtype=int)

@@ -1,18 +1,5 @@
 """ SED fitting class using emcee for parameter estimation
 
-    CURRENT LIMITATIONS:
-        A) Constant metallicity for input SSP
-        B) Dust Emission is ad hoc from Draine and Li (2007)
-
-    OPTIONAL FITTED PARAMETERS:
-        A) SFH
-            a) tau_sfh, age, a, b, c
-        B) Dust law
-            b) tau_dust, delta, Eb
-
-    OUTPUT PRODUCTS:
-        A) XXX Plot
-
 .. moduleauthor:: Greg Zeimann <gregz@astro.as.utexas.edu>
 
 """
@@ -394,6 +381,9 @@ WPBWPB: describe self.t_birth, set using args and units of Gyr
         -------
         SSP : 2-d array
             Single stellar population models for each age in self.ages
+        lineSSP : 2-d array
+            Single stellar population line fluxes for each age in self.ages
+
         '''
         if self.met_class.fix_met:
             if self.SSP is not None:
@@ -431,8 +421,7 @@ WPBWPB: describe self.t_birth, set using args and units of Gyr
         Returns
         -------
         csp : numpy array (1 dim)
-            Composite stellar population model at self.redshift
-WPBWPB units??
+            Composite stellar population model (micro-Jy) at self.redshift
         mass : float
             Mass for csp given the SFH input
         '''
@@ -565,9 +554,10 @@ WPBWPB units??
 #        print(Alam_emline)
 
         # Add dust emission
-        if min(spec_dustobscured[self.wave>5.0e4])<0.0: #Check to see that we don't have nonsensical results
-            print("Before adding dust: min(spec_dustobscured[wave>5.0 um]) =",
-                  min(spec_dustobscured[self.wave>5.0e4]))
+#        if min(spec_dustobscured[self.wave>5.0e4])<0.0: #Check to see that we don't have nonsensical results
+# WPBWPB delete
+#            print("Before adding dust: min(spec_dustobscured[wave>5.0 um]) =",
+#                  min(spec_dustobscured[self.wave>5.0e4]))
         if self.dust_em_class.assume_energy_balance:
             L_bol = (np.dot(self.dnu, spec_dustfree) - np.dot(self.dnu, spec_dustobscured)) #Bolometric luminosity of dust attenuation (for energy balance)
             dust_em = self.dust_em_class.evaluate(self.wave)
@@ -838,7 +828,7 @@ WPBWPB units??
 
     def fit_model(self):
         ''' Using emcee to find parameter estimations for given set of
-        data magnitudes and errors
+        data measurements and errors
         '''
         # Need to verify data parameters have been set since this is not
         # a necessity on initiation
@@ -967,6 +957,7 @@ WPBWPB units??
             self.spectrum, mass, mdust_eb = self.build_csp()
         else:
             self.spectrum, mass = self.build_csp()
+        self.true_spectrum = self.spectrum.copy()
         ax.plot(self.wave, self.spectrum, color=color, alpha=alpha)
 
     def add_sfr_plot(self, ax1):
@@ -986,12 +977,12 @@ WPBWPB units??
 
     def add_dust_plot(self, ax2):
         ax2.set_xscale('log')
-        xtick_pos = [1000, 3000, 10000]
-        xtick_lbl = ['1000', '3000', '10000']
+        xtick_pos = [2000, 4000, 8000]
+        xtick_lbl = ['2000', '4000', '8000']
         ax2.set_xticks(xtick_pos)
         ax2.set_xticklabels(xtick_lbl)
-        ax2.set_xlim([1000, 15000])
-        ax2.set_ylim([0, 4])
+        ax2.set_xlim([1000, 10000])
+        ax2.set_ylim([0.01, 4])
 #        ax2.set_ylabel(r'Dust Attenuation (mag)')
         ax2.set_ylabel(r'$A_\lambda$ [mag]')
         ax2.set_xlabel(r'Wavelength [$\AA$]')
@@ -1050,10 +1041,6 @@ WPBWPB units??
 
         ax3.scatter(self.fluxwv, self.fluxfn, marker='x', s=200,
                     color='dimgray', zorder=8)
-        chi2 = (1. / (len(self.data_fnu) - 1) *
-                (((self.data_fnu - self.fluxfn) / self.data_fnu_e)**2).sum())
-        # WPBWPB: reduced chi^2 or not? properly accounting for number of data points, including emlines?
-        # WPBWPB delete this calculation of chi2 -- use the dictionary value instead
         if self.input_params is not None:
             self.set_class_parameters(self.input_params)
             self.sfh_class.plot(ax1, color='k', alpha=1.0)
@@ -1084,7 +1071,6 @@ WPBWPB units??
 
     def triangle_plot(self, outname, lnprobcut=7.5, imgtype='png'):
         ''' Make a triangle corner plot for samples from fit
-        * Doesn't include the derived parameters t10, t50, t90, sfr10, and sfr100 as that would make the plot too crowded
 
         Input
         -----

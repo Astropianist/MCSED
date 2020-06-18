@@ -1,5 +1,7 @@
 """
 
+ISM/IGM corrections
+
 """
 
 import numpy as np
@@ -36,7 +38,7 @@ def get_MW_EBV(args):
     '''
     F = Table.read(args.filename, format='ascii')
     Fcols = F.colnames
-    nobj = len(F['field'])
+    nobj = len(F['Field'])
     try:
         C1 = F['C1']
         C2 = F['C2']
@@ -44,8 +46,8 @@ def get_MW_EBV(args):
         # Skelton catalogs
         fields = ['aegis', 'cosmos', 'goodsn', 'goodss', 'uds']
         name_base = '_3dhst.v4.1.cat.FITS'
-        if F['field'][0].lower() in fields:
-            for fd in F['field']: 
+        if F['Field'][0].lower() in fields:
+            for fd in F['Field']: 
                 assert fd.lower() in fields, "%s not in Skelton"%(fd) #Make sure the input isn't a mix of Skelton and non-Skelton
             C1, C2 = np.zeros(nobj), np.zeros(nobj)
             field_dict = {}
@@ -53,7 +55,7 @@ def get_MW_EBV(args):
                 field_dict[field] = fits.open(op.join('3dhst_catalogs',
                                                     field+name_base))[1]
             for i, datum in enumerate(F):
-                # assumes first element is field name and second is obj_id
+                # assumes first element is field name and second is ID
                 loc = datum[0].lower()
                 C1[i] = field_dict[loc].data['ra'][int(datum[1])-1]
                 C2[i] = field_dict[loc].data['dec'][int(datum[1])-1]
@@ -71,7 +73,9 @@ def get_MW_EBV(args):
 
 
 def get_tauIGMf():
-    """ Statistical IGM correction using 2-D interpolation on results from Madau (1995) equations
+    """
+    Statistical IGM correction using 2-D interpolation on results 
+    from Madau (1995) equations
     
     Parameters
     ----------
@@ -79,7 +83,8 @@ def get_tauIGMf():
 
     Returns
     -------
-    tauIGMf: 2-D interpolation optical depth function (of observed wavelength and redshift from 0 to 4)
+    tauIGMf: 2-D interpolation optical depth function
+    (of observed wavelength and redshift from 0 to 4)
     """
     fulltauIGM = np.loadtxt("ISM_IGM/IGM_tau_z_0_4.dat")
     assert len(fulltauIGM[0,1:])>len(fulltauIGM[1:,0]) 
@@ -88,7 +93,11 @@ def get_tauIGMf():
     return tauIGMf
 
 def get_tauISMf():
-    """ Milky Way Dust correction using 1-D interpolation on wavelength given 2-D maps originally by Schlegel, Finkbeiner, and Davis (1998) and updated by Schlafly and Finkbeiner (2011); a Rv=3.1 Fitzpatrick (1999) extinction law is used
+    """
+    Milky Way Dust correction using 1-D interpolation on wavelength given 
+    2-D maps originally by Schlegel, Finkbeiner, and Davis (1998) and updated 
+    by Schlafly and Finkbeiner (2011); 
+    a Rv=3.1 Fitzpatrick (1999) extinction law is used
 
     Parameters
     ----------
@@ -96,7 +105,8 @@ def get_tauISMf():
 
     Returns
     -------
-    tauISMf: 1-D interpolation optical depth function (of [observed] wavelength) using Rv=3.1 Fitzpatrick (1999) extinction law
+    tauISMf: 1-D interpolation optical depth function 
+    (of [observed] wavelength) using Rv=3.1 Fitzpatrick (1999) extinction law
     """
     wavISM, Rlam = np.loadtxt("ISM_IGM/Rlam_31.dat", unpack=True)
     tauISMf = interp1d(wavISM, Rlam,
