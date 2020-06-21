@@ -14,8 +14,8 @@ You will see a drop down menu of all the available input arguments. This
 menu is reproduced below.
 
 | ``python run_mcsed_fit.py -h usage: -h [-h] [-f FILENAME] [-o OUTPUT_FILENAME] [-p] [-s SSP]`` 
-| ``[-z METALLICITY] [-i ISOCHRONE] [-sfh SFH] [-dl DUST_LAW] [-nw NWALKERS] [-ns NSTEPS] [-lu LOGU] [-de DUST_EM_TYPE] [-aeb]``
-| ``[-t] [-tf TEST_FIELD] [-no NOBJECTS]``
+| ``[-z METALLICITY] [-i ISOCHRONE] [-sfh SFH] [-dl DUST_LAW] [-nw NWALKERS] [-ns NSTEPS] [-lu LOGU]``
+| ``[-de DUST_EM_TYPE] [-aeb] [-t] [-tf TEST_FIELD] [-no NOBJECTS]``
 
 **Optional Arguments:** 
 

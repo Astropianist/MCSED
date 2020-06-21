@@ -524,10 +524,11 @@ be the median age of the pivot points and set the input lookback time
 
 In the ``'binned lsfr'`` option, the star formation rate history of a galaxy is divided into a series of age bins,
 with the SFR internal to each bin assumed to be constant. ``MCSED`` fits for the log SFR within each time bin.
-``MCSED`` has six (log) age bins dened by the ``ages`` array within ``sfh.py``; as a default, the bins are dene as
-ages = [8:0,8:5,9:0,9:5, 9:8, 10:12]. These values are adopted from Leja et al. (2017) and are motivated
-by physical considerations. The user can easily modify these age bins by editing the ages keyword defined in
-the ``binned_lsfr`` class in ``sfh.py``. While these ages extend to the age of the universe, only the SSP spectra
+``MCSED`` has six (log) age bins defined by the ``ages`` array within ``sfh.py``; as a default, the bins are define as
+ages = [8.0, 8.5, 9.0, 9.5, 9.8, 10.12]. These values are adopted from Leja et al. (2017) and are motivated
+by physical considerations. The user can easily modify these age bins by editing 
+the ages keyword defined in the ``binned_lsfr``
+class in ``sfh.py``. While these ages extend to the age of the universe, only the SSP spectra
 that are younger than the age of the galaxy will contribute to the nal SED model.
 Since the SFR is assumed to be constant within each age bin, the computational efficiency can be
 improved by collapsing the SSP grid and summing the spectra within each SFH time bin via a weighted

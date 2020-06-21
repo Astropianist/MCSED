@@ -226,7 +226,7 @@ emission lines.
    | D4000 | …     | …      | 3750. | 3950.      | 4050. | 4250.     | 2     | 1.0   |
    |       |       |        | 000   | 000        | 000   | 000       |       |       |
    +-------+-------+--------+-------+------------+-------+-----------+-------+-------+
-   ¹Unit codes: 0 = Å; 1 = mag; 2 = ratio
+¹Unit codes: 0 = Å; 1 = mag; 2 = ratio
 
 These definitions come from Bruzual (1983) and Worthey et al. (1994);
 they are calculated by finding the average value of :math:`F_{\lambda}`
