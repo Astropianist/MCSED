@@ -1085,6 +1085,7 @@ def main(argv=None, ssp_info=None):
             mcsed_model.set_new_redshift(zi)
             mcsed_model.data_emline = emi
             mcsed_model.data_emline_e = emie
+            print "Given data_emline_e", emie
             mcsed_model.data_absindx = indx
             mcsed_model.data_absindx_e = indxe
 

@@ -113,8 +113,8 @@ reserved_cores = 0 # integer
 #           must have null value = -99
 #           must have both flux and error - cannot have flux with null error
 #           can also set to {} or None, if preferred
-emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
-                    'Hb'  : (4861., 1.),  'Ha' : (6563., 1.),
+emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 1.0),
+                    'Hb'  : (4861., 1.),  'Ha' : (6563., 2.5),
                     'NII' : (6583., 0.5)
                    }
 

@@ -20,7 +20,7 @@ from scipy.interpolate import interp1d
 from astropy.constants import c as clight
 import numpy as np
 
-plt.ioff() # UNCOMMENT THIS LINE IF RUNNING ON LINUX
+#plt.ioff() # UNCOMMENT THIS LINE IF RUNNING ON LINUX
 
 import seaborn as sns
 sns.set_context("talk") # options include: talk, poster, paper
@@ -699,6 +699,7 @@ class Mcsed:
         inv_sigma2 = 1.0 / (self.data_fnu_e**2 + (model_y * self.sigma_m)**2)
         chi2_term = -0.5 * np.sum((self.data_fnu - model_y)**2 * inv_sigma2)
         parm_term = -0.5 * np.sum(np.log(1 / inv_sigma2))
+#        print "In the beginning: chi2_term and parm_term", chi2_term, parm_term
 
         # calculate the degrees of freedom and store the current chi2 value
         # only need to calculate the degrees of freedom once
@@ -725,6 +726,7 @@ class Mcsed:
                     chi2_term += (-0.5 * (model_indx - obs_indx)**2 /
                                   sigma2) * indx_weight
                     parm_term += -0.5 * np.log(indx_weight * sigma2)
+#                    print "After including absorption indices, chi2_term and parm_term:", chi2_term, parm_term
                     if not self.chi2:
                         dof_wht.append(indx_weight) 
 #                    print('this is absorption thing:')
@@ -748,9 +750,12 @@ class Mcsed:
                         lineflux  = self.data_emline['%s_FLUX' % emline]
                         elineflux = self.data_emline_e['%s_ERR' % emline]
                         sigma2 = elineflux**2. + model_err**2.
+#                        print "model_lineflux, lineflux, sigma2, emline_weight for", emline, "=", model_lineflux, lineflux, sigma2, emline_weight
+#                        print "elineflux, model_err, self.sigma_m", elineflux, model_err, self.sigma_m
                         chi2_term += (-0.5 * (model_lineflux - lineflux)**2 /
                                       sigma2) * emline_weight
                         parm_term += -0.5 * np.log(emline_weight * sigma2)
+#                        print "After including", emline, ", chi2_term and parm_term", chi2_term, parm_term
                         if not self.chi2:
                             dof_wht.append(emline_weight)
 
