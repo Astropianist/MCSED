@@ -10,7 +10,7 @@ ssp = 'fsps'          # options include: 'fsps'
 isochrone = 'padova'  # options include: 'padova'
 # SFH options include: 'constant', 'burst', 'polynomial', 'exponential', 
 #                      'double_powerlaw', 'binned_lsfr'
-sfh = 'binned_lsfr' 
+sfh = 'constant' 
 dust_law = 'calzetti'   # options include: 'noll', 'calzetti', 'reddy', 
                         #                  'conroy', 'cardelli'
 
@@ -46,7 +46,7 @@ metallicity = 0.0077
 
 # Nebular Emission Properties
 # The ionization parameter, logU, is held fixed
-logU = -2.
+logU = -2.5
 
 # EMCEE parameters
 nwalkers = 100 
@@ -54,13 +54,13 @@ nsteps   = 1000
 
 # Number of test objects
 nobjects = 5
-test_zrange = (0.6, 1.9) # redshift range of test objects (uniform prior)
+test_zrange = (1.9, 2.35) # redshift range of test objects (uniform prior)
 
 # minimum fractional errors in observed photometry, 
 # emission line fluxes, and absorption line indices 
-phot_floor_error    = 0.10
-emline_floor_error  = 0.10
-absindx_floor_error = 0.10
+phot_floor_error    = 0.05
+emline_floor_error  = 0.05
+absindx_floor_error = 0.05
 
 # Fractional error expected from the models, i.e., fractional error adopted
 # for model photometry, emission line fluxes, and absorption line indices
@@ -90,7 +90,7 @@ output_dict = {'parameters'    : True,   # fitted parameters
                'fluxdensity'   : True,   # modeled and observed photometry
                'lineflux'      : True,   # modeled and observed emission lines
                'absorption'    : False,   # modeled, observed absorption indices
-               'triangle plot' : False,   # summary diagnostic plot
+               'triangle plot' : True,   # summary diagnostic plot
                'sample plot'   : False,  # parameter estimates for MCMC chains
                'template spec' : False,   # save a plot of SSP spectra 
                'image format'  : 'png'}  # image type for plots
