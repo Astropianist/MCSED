@@ -3,28 +3,36 @@
 Running MCSED
 =============
 
-``MCSED`` calculates the likelihood of a solution in the usual fashion,
-i.e.,
 
-.. math:: \log L (\mu) = \sum_{i=1}^N -{N \over 2} \ln \sigma_i +  {\left( x_i - \mu \right)^2 \over 2 \sigma_i^2}
+``MCSED`` calculates the log-likelihood of a solution as
 
-where :math:`\mu` is the model, :math:`x_i` are the data points, and
-:math:`\sigma_i` are the uncertainties. As pointed out in
-:ref:`subsec:columns`, the values of
-:math:`\sigma_i` may be based on the errors given in the input file or
-the minimum fractional uncertainties defined by ``phot_floor_error``,
+.. math:: \log L = -{1 \over 2} \sum_{i=1}^N \left[ \ln \left( w_i \sigma_i^2 \right) +  { w_i \left( x_i - \mu_i \right)^2 \over \sigma_i^2} \right]
+
+where :math:`\mu_i` are the modeled quantities, :math:`x_i` are the observed quantities,
+:math:`\sigma_i` are the uncertainties, and :math:`w_i` are the weights.
+By default, :math:`w_i \equiv 1` for all photometric points, while emission 
+lines and absorption line indices can have user-defined weights
+(as described in :ref:`section:inputs`). 
+The :math:`\sigma_i` terms include contributions from the uncertainties associated 
+with both the observations and the models. As pointed out in :ref:`subsec:columns`, 
+the observed uncertainties may be based on the errors given in the input file 
+or the minimum fractional uncertainties defined by ``phot_floor_error``,
 ``emline_floor_error``, and ``absorption_floor_error``. In addition, the
-:math:`\sigma` values also include an additional term associated with
-the uncertainties of the models themselves. This fractional error (which
-is added in quadrature to the other errors) is defined in the file
-``mcsed.py`` and is given the default of ``sigma_m = 0.1``.
+:math:`\sigma_i` values include a term associated with
+the uncertainties of the models themselves. This fractional error is defined in the file
+``config.py`` via the ``model_floor_error`` keyword and is given the 
+default value of :math:`\sigma_{m,frac} = 0.1`. 
+The final :math:`\sigma_i^2` term is calculated as
 
-``MCSED`` can be run in 3 different modes: a live mode, where SED fits
-are performed on a set of galaxies defined in an input file, a test
-mode, where ``MCSED`` is run on mock galaxies with known parameters, and
-a parallel mode, which makes use of a system that has a large number of
-cores. We describe these below.
+.. math:: \sigma_i^2 = \sigma_{i,obs}^2 + \left( \mu_i \sigma_{m,frac} \right)^2
 
+``MCSED`` can be run in two different modes: a live mode, where SED fits
+are performed on a set of galaxies defined in an input file, and a test
+mode, where ``MCSED`` is run on mock galaxies with known parameters. 
+Both of these modes can take advantage of the parallel feature, which 
+makes use of a system that has multiple cores. We describe these modes below.
+
+  
 .. _subsec:livemode:
 
 Live Mode
@@ -79,7 +87,7 @@ the mock SED and perturbing those fluxes about their associated
 photometric uncertainties. Finally, these mock observations are used to
 fit an SED model and estimate the corresponding model parameters. Upon
 completion, ``MCSED`` will return the calculated parameters from the
-run, as well as the initially fixed parameters.
+run, as well as the "truth" model parameters, filter fluxes, and SED.
 
 .. _subsec:parallelmode:
 
