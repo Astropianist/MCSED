@@ -21,6 +21,7 @@ def worker(f, i, chunk, ssp_info, out_q, err_q, kwargs):
     try:
         result = f(argv=chunk, ssp_info=ssp_info)
     except Exception as e:
+        print "Exception occurred for worker", i, "and chunk", chunk 
         err_q.put(e)
         return
 
