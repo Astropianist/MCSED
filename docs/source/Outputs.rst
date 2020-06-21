@@ -89,8 +89,7 @@ line fluxes will be returned. The list of lines are those defined by
 name of line, it observed monochromatic flux, the uncertainty in the
 measurement, and the modeled flux. The default for this option is
 ``lineflux = True``. The file will only be saved if emission line 
-fluxes are provided in the input
-file and used in constraining the SED fit.
+fluxes are provided in the input file and used in constraining the SED fit.
 
 .. _subsec:outputabsorption:
 
