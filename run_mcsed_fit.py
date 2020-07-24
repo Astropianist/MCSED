@@ -746,6 +746,13 @@ def main(argv=None, ssp_info=None):
     else:
         ages, wave, SSP, met, linewave, lineSSP = ssp_info
 
+#    ### save Z, logU, linestrength grid:
+#    #   save only the first age
+##    np.savez('linestrength_Z_logU%s' % args.logU, met=met, linewave=linewave, lineSSP=lineSSP[:,0,:])
+#    np.savez('linestrength_Z_logU%s' % args.logU, ages=ages, met=met, linewave=linewave, lineSSP=lineSSP[:,:,:])
+#
+#    return
+
     # Read in input data, if not in test mode 
     if not args.test: 
         input_file_data = read_input_file(args) 

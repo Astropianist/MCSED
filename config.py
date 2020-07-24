@@ -10,8 +10,8 @@ ssp = 'fsps'           # options include: 'fsps'
 isochrone = 'padova'   # options include: 'padova'
 # SFH options include: 'constant', 'burst', 'polynomial', 'exponential', 
 #                      'double_powerlaw', 'binned_lsfr'
-sfh = 'constant' 
-dust_law = 'calzetti'  # options include: 'calzetti', 'noll', 'reddy', 
+sfh = 'binned_lsfr' 
+dust_law = 'noll'      # options include: 'calzetti', 'noll', 'reddy', 
                        #                  'conroy', 'cardelli'
 
 # Dust emission parameters: 
@@ -42,7 +42,7 @@ wave_dust_em     = 2.5   # rest-frame wavelength in microns
 # Stellar metallicity
 #   If False, leave metallicity as a free model parameter
 #   else, must be float: fixed metallicity of SSP models (Z_solar = 0.019)
-metallicity = 0.0077 
+metallicity = False 
 
 # Nebular Emission Properties
 # The ionization parameter, logU, is held fixed
@@ -58,9 +58,9 @@ test_zrange = (1.0, 2.0) # redshift range of test objects (uniform prior)
 
 # Minimum fractional errors in observed photometry, 
 #   emission line fluxes, and absorption line indices 
-phot_floor_error    = 0.05
-emline_floor_error  = 0.05
-absindx_floor_error = 0.05
+phot_floor_error    = 0.10
+emline_floor_error  = 0.10
+absindx_floor_error = 0.10
 
 # Fractional error expected from the models, i.e., fractional error adopted
 #   for model photometry, emission line fluxes, and absorption line indices
@@ -92,7 +92,7 @@ output_dict = {'parameters'    : True,   # fitted parameters
                'absindx'       : True,   # modeled, observed absorption indices
                'triangle plot' : True,   # summary diagnostic plot
                'sample plot'   : False,  # parameter estimates for MCMC chains
-               'template spec' : True,   # save a plot of SSP spectra 
+               'template spec' : False,   # save a plot of SSP spectra 
                'image format'  : 'png'}  # image type for plots
 
 # Percentiles of each model parameter to report in the output file
@@ -107,9 +107,16 @@ reserved_cores = 2 # integer
 #   measurements in input file have column names Name_FLUX, Name_ERR 
 #   corresponding to line flux and error (null=-99) and lines will only
 #   contribute to the model likelihood if they appear in the input file
-emline_list_dict = {'OII' : (3727., 0.5), 'OIII' : (5007., 0.5),
-                    'Hb'  : (4861., 1.),  'Ha' : (6563., 1.),
-                    'NII' : (6583., 0.5)
+emline_list_dict = {'[OII]3727'   : (3727. , 1.),
+                    '[NeIII]3869' : (3869. , 1.),
+                    'Hdelta'      : (4101.7 , 1.), 
+                    'Hgamma'      : (4340.5 , 1.),
+                    '[OIII]4363'  : (4363. , 1.),
+                    'HeI4471'     : (4471. , 1.),
+                    'HeII4686'    : (4686. , 1.),
+                    'Hbeta'       : (4861. , 1.),
+                    '[OIII]4959'  : (4959. , 1.),
+                    '[OIII]5007'  : (5007. , 1.)
                    }
 
 emline_factor = 1e-17 # numerical conversion from input values to units ergs/cm2/s
