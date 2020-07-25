@@ -112,10 +112,11 @@ emline_list_dict = {'[OII]3727'   : (3727. , 1.),
                     '[OIII]4363'  : (4363. , 1.),
                     'HeI4471'     : (4471. , 1.),
                     'HeII4686'    : (4686. , 1.),
-                    'Hbeta'       : (4861. , 1.),
+                    'Hb'          : (4861. , 1.),
                     '[OIII]4959'  : (4959. , 1.),
-                    '[OIII]5007'  : (5007. , 1.),
-                    'Halpha'      : (6563. , 2.5)
+                    'OIII'        : (5007. , 1.),
+                    'Ha'          : (6563. , 2.5),
+                    'NII'         : (6583. , 0.5)
                    }
 
 emline_factor = 1e-17 # numerical conversion from input values to units ergs/cm2/s
