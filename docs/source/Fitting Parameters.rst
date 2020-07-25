@@ -6,8 +6,8 @@ Fitting Parameters
 ``MCSED`` contains numerous options for fitting a galaxy’s spectral
 energy distribution. Many of these options can be specified either on
 the command line or entered directly in the ``config.py`` configuration
-script, including 5 dust attenuation laws and 6 star formation rate
-histories. These options (and others) are described below.
+script, including five dust laws and six star formation rate
+histories. These options are described below.
 
 .. _subsec:attenuation:
 
@@ -33,7 +33,7 @@ with
 
 In ``MCSED``, the default values for :math:`t_{\rm birth}` and
 :math:`\eta` are set in ``config.py`` to ``t_birth`` = 7 (log years) and
-``EBV_old_young`` = 0.44. (The latter number comes the analysis of local
+``EBV_old_young`` = 0.44. (The latter number comes from the analysis of local
 starburst galaxies by Calzetti et al. 2000). These values can easily be
 reset in ``config.py``.
 
@@ -44,8 +44,9 @@ Within ``MCSED`` are four pre-coded attenuation laws (``’calzetti’``,
 curve (``’cardelli’``). For each of these prescriptions, the amount of
 extinction is parameterized by the differential reddening,
 :math:`E(B-V)`, which is initialized in ``MCSED`` through the parameter
-``EBV`` in ``dust_abs.py``. As a default, ``EBV`` is allowed to take on
-values between ``[-0.05, 1.50]``.
+``EBV`` in ``dust_abs.py``. The default range for ``EBV`` in each law is
+set to allow for :math:`0 \leq A_V \lesssim 6` magnitudes of attenuation
+(where :math:`E(B-V) = A_V / R_V`).
 
 Note that many attenuation laws are written in terms of :math:`R_V`,
 which describes the ratio of total to differential extinction in the
@@ -163,8 +164,8 @@ years, most extragalactic applications of the Cardelli law have adopted
 the mean Milky Way total-to-differential extinction ratio of
 :math:`R_V = 3.1`. In the Conroy et al. (2010) modification of this law,
 the attenuation in nearby galaxies is best reproduced using
-:math:`B = 0.8`, the expression for :math:`f_a` is a weak function of
-:math:`B` and :math:`R_V`, and :math:`R_V \approx 2.0`.
+:math:`B = 0.8`, the expression for :math:`f_a` as a weak function of
+:math:`B` and :math:`R_V`, and :math:`R_V = 2.0`.
 
 In ``MCSED``, if ``dust_law = ’conroy’``, then by default, ``Rv = 2.0``
 and ``B = 0.8``; if ``dust_law = ’cardelli’``, then ``Rv = 3.1`` and
@@ -527,7 +528,7 @@ with the SFR internal to each bin assumed to be constant. ``MCSED`` fits for the
 ``MCSED`` has six (log) age bins defined by the ``ages`` array within ``sfh.py``; as a default, the bins are define as
 ages = [8.0, 8.5, 9.0, 9.5, 9.8, 10.12]. These values are adopted from Leja et al. (2017) and are motivated
 by physical considerations. The user can easily modify these age bins by editing 
-the ages keyword defined in the ``binned_lsfr``
+the ``ages`` keyword defined in the ``binned_lsfr``
 class in ``sfh.py``. While these ages extend to the age of the universe, only the SSP spectra
 that are younger than the age of the galaxy will contribute to the nal SED model.
 Since the SFR is assumed to be constant within each age bin, the computational efficiency can be
@@ -550,10 +551,10 @@ via the ``sfh`` keyword in ``config.py``.
 Stellar Metallicity
 -------------------
 
-``MCSED`` uses a library of SSP spectra which are layed out over a
-two-dimensional grid in age and metallicity. In forming the CSP of a
-galaxy, one can either fix the metallicity to some value, or allow
-metallicity to be a free parameter. This choice is accomplished either
+``MCSED`` uses a library of SSP spectra which span a three-dimensional grid in 
+wavelength, age, and metallicity. In forming the composite stellar population 
+of a galaxy, one can either fix the metallicity to some value, or allow
+metallicity to be a free model parameter. This choice is accomplished either
 on the command line via the ``-z`` option, or by setting the variable
 ``metallicity`` in ``config.py``; a real value fixes the metallicity
 :math:`Z` (where :math:`Z_\odot = 0.019`), while the boolean ``False``
@@ -581,7 +582,7 @@ line indices) in the SED fits.
 
 The current version of ``MCSED`` has no provision for following the
 chemical evolution of the various stellar populations within a galaxy.
-Only a single metallicity is used in the fits.
+Only a single metallicity is used in each iteration of the fit.
 
 .. _subsec:ionization-param:
 

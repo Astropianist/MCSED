@@ -29,8 +29,8 @@ The final :math:`\sigma_i^2` term is calculated as
 ``MCSED`` can be run in two different modes: a live mode, where SED fits
 are performed on a set of galaxies defined in an input file, and a test
 mode, where ``MCSED`` is run on mock galaxies with known parameters. 
-Both of these modes can take advantage of the parallel feature, which 
-makes use of a system that has multiple cores. We describe these modes below.
+Both of these modes can take advantage of the parallel feature, which utilizes
+multiple cores. We describe these modes below.
 
   
 .. _subsec:livemode:
@@ -38,16 +38,15 @@ makes use of a system that has multiple cores. We describe these modes below.
 Live Mode
 ---------
 
-Live mode is the most common mode of running ``MCSED``. In this mode,
-``MCSED`` will take an input file as described in
-:ref:`section:inputs` and fit each object, producing
-the outputs described in :ref:`section:outputs`. To
-run ``MCSED`` in live mode, type
+Live mode is the most common method of running ``MCSED``. In this mode,
+``MCSED`` will take an input file (as described in :ref:`section:inputs`)
+and fit each object, producing the outputs described in :ref:`section:outputs`. 
+To run ``MCSED`` in live mode, issue
 
 ``python run_mcsed_fit.py -f <input_file>``
 
 with any of the additional parameters described above. (Use the ``-h``
-option to see the complete list). While running ``MCSED``, a table will
+option to see the complete list.) While running ``MCSED``, a table will
 appear onscreen as it is being built, as well as the mean acceptance
 fraction, auto correlation steps, and number of burn-in steps for each
 object.
@@ -81,7 +80,8 @@ The mock SED is realized from a set of “truth” model parameters
 specified on the command line) and randomly drawn from the prior
 distributions. The redshift of the mock galaxy is randomly drawn from a
 uniform distribution spanning the range of redshifts specified by the
-``test_zrange`` keyword in ``config.py``. Photometric data for the mock
+``test_zrange`` keyword in ``config.py`` (the default range 
+is :math:`1 < z < 2`). Photometric data for the mock
 galaxy are then simulated by measuring the filter flux densities from
 the mock SED and perturbing those fluxes about their associated
 photometric uncertainties. Finally, these mock observations are used to
@@ -91,7 +91,7 @@ run, as well as the "truth" model parameters, filter fluxes, and SED.
 
 .. _subsec:parallelmode:
 
-Parallel mode
+Parallel Mode
 -------------
 
 Parallel mode will automatically utilize :math:`N-i` cores on a
@@ -101,7 +101,7 @@ in the calculation. The number of reserved cores can be specified by the
 user in ``config.py`` using the ``reserved_cores`` keyword. This mode is
 extremely useful for fitting large samples of galaxies.
 
-To run ``MCSED`` in parallel mode, use the ``-p`` option on the command
+To run ``MCSED`` in parallel mode, include the ``-p`` option on the command
 line, e.g.,
 
 ``python run_mcsed_fit.py -f <input_file> -p``

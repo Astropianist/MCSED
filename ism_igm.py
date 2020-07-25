@@ -48,7 +48,8 @@ def get_MW_EBV(args):
         name_base = '_3dhst.v4.1.cat.FITS'
         if F['Field'][0].lower() in fields:
             for fd in F['Field']: 
-                assert fd.lower() in fields, "%s not in Skelton"%(fd) #Make sure the input isn't a mix of Skelton and non-Skelton
+                #Make sure the input isn't a mix of Skelton and non-Skelton
+                assert fd.lower() in fields, "%s not in Skelton"%(fd) 
             C1, C2 = np.zeros(nobj), np.zeros(nobj)
             field_dict = {}
             for field in fields:
@@ -59,7 +60,7 @@ def get_MW_EBV(args):
                 loc = datum[0].lower()
                 C1[i] = field_dict[loc].data['ra'][int(datum[1])-1]
                 C2[i] = field_dict[loc].data['dec'][int(datum[1])-1]
-            args.ISM_correct_coords = 'ICRS' #Skelton coordinates are RA and Dec
+            args.ISM_correct_coords = 'FK5' #Skelton coordinates are RA and Dec
         else:
             print("No coordinates given and no match to Skelton Catalog")
             return np.array([np.nan]*nobj)
