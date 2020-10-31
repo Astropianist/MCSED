@@ -38,7 +38,7 @@ t_birth = 7. # age of the birth cloud (log years)
 # blue_wave_cutoff: ignore filters containing Lyman-alpha
 # wave_dust_em:     if not fitting dust emission component, ignore photometry
 #                   dominated by dust emission
-blue_wave_cutoff = 700.0 # rest-frame wavelength in Angstroms 
+blue_wave_cutoff = 300.0 # rest-frame wavelength in Angstroms 
 wave_dust_em     = 2.5   # rest-frame wavelength in microns 
 
 # Stellar metallicity
@@ -116,11 +116,11 @@ emline_list_dict = {'[OII]3727'   : (3727. , 1.),
                     '[OIII]4363'  : (4363. , 1.),
                     'HeI4471'     : (4471. , 1.),
                     'HeII4686'    : (4686. , 1.),
-                    'Hb'          : (4861. , 1.),
-                    '[OIII]4959'  : (4959. , 1.),
-                    'OIII'        : (5007. , 1.),
-                    'Ha'          : (6563. , 2.5),
-                    'NII'         : (6583. , 0.5)
+#                    'Hb'          : (4861. , 1.0),
+#                    '[OIII]4959'  : (4959. , 1.0),
+#                    'OIII'        : (5007. , 1.0),
+#                    'Ha'          : (6563. , 2.5),
+#                    'NII'         : (6583. , 1.0)
                    }
 
 emline_factor = 1e-17 # numerical conversion from input values to units ergs/cm2/s

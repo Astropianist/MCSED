@@ -268,6 +268,8 @@ def parse_args(argv=None):
         args.dust_em = 'DL07'
         args.fit_dust_em = False
 
+    setattr(args,"nfreeparams",0)
+
     return args
 
 
@@ -851,6 +853,9 @@ def main(argv=None, ssp_info=None):
         fl = get_test_filters(args)
         mcsed_model.filter_flag = fl * True
         default = mcsed_model.get_params()
+        # setattr(args,"nfreeparams",mcsed_model.nfreeparams)
+        args.nfreeparams = mcsed_model.nfreeparams
+        print "args.nfreeparams", args.nfreeparams
         y, yerr, z, truth, true_y = mock_data(args, mcsed_model,
                                               phot_error=args.phot_floor_error,
                                               nsamples=args.nobjects)
@@ -923,6 +928,9 @@ def main(argv=None, ssp_info=None):
             ebv_MW = np.zeros(len(y))
 
         iv = mcsed_model.get_params()
+        # setattr(args,"nfreeparams",mcsed_model.nfreeparams)
+        args.nfreeparams = mcsed_model.nfreeparams
+        print "args.nfreeparams:", args.nfreeparams
 
         for yi, ye, zi, fl, oi, fd, emi, emie, indx, indxe, ebvi in zip(y, yerr, z, flag, 
                                                                         objid, field, em, emerr,
