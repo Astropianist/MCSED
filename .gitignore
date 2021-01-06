@@ -8,6 +8,7 @@ output/
 *.jpeg
 *.jpg
 *.png
+*.pdf
 *.pptx
 #Ignore modified versions or whatever they are
 *~
