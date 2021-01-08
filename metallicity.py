@@ -39,6 +39,25 @@ class stellar_metallicity:
         else:
             return 1
 
+    def get_param_nums(self,var='met'):
+        ''' Return the position of each parameter '''
+        if self.fix_met:
+            print("Metallicity is not free in this configuration")
+            return -99
+        if var=='met': 
+            return 0
+        else: 
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        if self.fix_met:
+            return [],[]
+        else:
+            return ['met'], [r'Log $(Z/Z_\odot)$']
+
     def get_params(self):
         ''' Return current parameters '''
         l = []
