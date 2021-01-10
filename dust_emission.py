@@ -167,13 +167,9 @@ class DL07:
         if self.fixed:
             return []
         else:
-            self.umin.name = 'Umin'
-            self.gamma.name = '$\gamma$'
-            self.qpah.name = '$q_{pah}$'
             if self.assume_energy_balance:
                 return ['Umin', '$\gamma$', '$q_{pah}$']
             else:
-                self.mdust.name = '$M_{dust}$'
                 return ['Umin', '$\gamma$', '$q_{pah}$', '$M_{dust}$']
 
     def prior(self):

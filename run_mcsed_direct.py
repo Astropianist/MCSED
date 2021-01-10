@@ -172,7 +172,7 @@ def parse_args(argv=None):
                         (affecting wavelengths up to rest-frame Ly-alpha)''',
                         action="count", default=0)
 
-    parser.add_argument("-ofn", "--output_filename",
+    parser.add_argument("-opf", "--output_param_file",
                         help='''If this is provided, the program will search this file to
                         get best-fit parameters from a full MCSED run ''',
                         type=str, default=None )
@@ -248,6 +248,7 @@ def parse_args(argv=None):
 
     # Pass "count" keyword (indexing objects in test mode) 
     args.count = count
+    print("Args.count:"), args.count
 
     # Determine whether emission lines / absorption line indices are used
     # to constrain the models (not included in test mode)
@@ -264,17 +265,14 @@ def parse_args(argv=None):
         args.absorption_index_dict={}
 
     # Set up dust emission arguments
-    if isinstance(args.dust_em, str):
-        args.fit_dust_em = True
-    elif args.dust_em==True:
+    if args.dust_em==False or args.dust_em=="False":
+        args.dust_em = 'DL07'
+        args.fit_dust_em = False
+    elif args.dust_em==True or args.dust_em=="True":
         args.dust_em = 'DL07'
         args.fit_dust_em = True
     else:
-        args.dust_em = 'DL07'
-        args.fit_dust_em = False
-
-    args.output_filename = output_filename
-
+        args.fit_dust_em = True
     return args
 
 
@@ -712,18 +710,24 @@ def mock_data(args, mcsed_model, nsamples=5, phot_error=0.05):
 
     return y, yerr, zobs, params, true_y
 
-def get_param_values(filename,fdlist,idlist,param_names):
+def get_param_values(args,fdlist,idlist,param_names):
     param_list = []
-    dat = Table.read(filename,format='ascii')
+    dat = Table.read(args.output_param_file,format='ascii')
     for fd,id in zip(fdlist,idlist):
         try:
-            ind = np.where(dat['Field']==fd and dat['ID']==id)[0][0]
+            ind = np.where(np.logical_and(dat['Field']==fd,dat['ID']==id))[0][0]
         except:
+            param_list.append([-99.0]*len(param_names))
+            args.log.info("Didn't find an entry for Field, ID = %s, %d"%(fd,id))
             continue
         indiv_list = []
         for pn in param_names:
             colname = pn+'_50'
-            indiv_list.append(dat[colname][ind])
+            try:
+                indiv_list.append(dat[colname][ind])
+            except:
+                args.log.info("Couldn't find the column %s in opf"%(colname))
+                return None
         param_list.append(indiv_list)
     return np.array(param_list)
 
@@ -748,10 +752,10 @@ def main(argv=None, ssp_info=None):
     # Get Inputs
     if argv == None:
         argv = sys.argv
-        argv.remove('run_mcsed_fit.py')
+        argv.remove('run_mcsed_direct.py')
 
     args = parse_args(argv)
-
+    args.log.info("Finished parsing args")
     # Catch to run in parallel
     if (args.parallel) & (not args.already_parallel):
         import run_mcsed_parallel_direct
@@ -765,6 +769,7 @@ def main(argv=None, ssp_info=None):
     else:
         ages, wave, SSP, met, linewave, lineSSP = ssp_info
 
+    args.log.info("Finished reading in SSP Info")
 #    ### save Z, logU, linestrength grid:
 #    #   save only the first age
 ##    np.savez('linestrength_Z_logU%s' % args.logU, met=met, linewave=linewave, lineSSP=lineSSP[:,0,:])
@@ -778,14 +783,19 @@ def main(argv=None, ssp_info=None):
     else:
         input_file_data = None
 
+    args.log.info("Finished reading input file if applicable")
+
     # Get ISM and/or ISM correction
     if args.IGM_correct:
         tauIGMf = ism_igm.get_tauIGMf()
     if args.ISM_correct:
         tauISMf = ism_igm.get_tauISMf()
 
+    args.log.info("Created ISM and/or IGM correction interpolation functions if requested")
+
     # Build Filter Matrix
     filter_matrix = build_filter_matrix(args, wave)
+    args.log.info("Built filter matrix")
 
     # Make one instance of Mcsed for speed on initialization
     # (relevant variables are reassigned for each galaxy)
@@ -793,6 +803,8 @@ def main(argv=None, ssp_info=None):
                         met, wave, args.sfh,
                         args.dust_law, args.dust_em, nwalkers=args.nwalkers,
                         nsteps=args.nsteps,sigma_m=args.model_floor_error)
+
+    args.log.info("Created overall MCSED model which will be tweaked for every iteration")
 
     # Communicate emission line measurement preferences
     mcsed_model.use_emline_flux = args.use_emline_flux
@@ -837,26 +849,35 @@ def main(argv=None, ssp_info=None):
     else:
         mcsed_model.dust_em_class.assume_energy_balance = False
 
+    args.log.info("Finished initialization of MCSED model based on args and config")
+
     # Get list of interesting parameters for direct tests
     var_list, var_name_list, par_cl_list = ([], [], [])
     for par_cl in mcsed_model.param_classes:
-        for item, name in getattr(mcsed_model,par_cl).get_interesting_var_names():
+        items, names = getattr(mcsed_model,par_cl).get_interesting_var_names()
+        for item, name in zip(items,names):
             var_list.append(item)
             var_name_list.append(name)
             par_cl_list.append(par_cl)
 
+    args.log.info("Created lists for interesting parameters to use in direct tests")
+
     # MAIN FUNCTIONALITY
     if args.test:
+        args.log.info("Entering test mode")
         fl = get_test_filters(args)
         mcsed_model.filter_flag = fl * True
-        # default = mcsed_model.get_params()
+        default = mcsed_model.get_params()
         y, yerr, z, truth, true_y = mock_data(args, mcsed_model,
                                               phot_error=args.phot_floor_error,
                                               nsamples=args.nobjects)
 
+        args.log.info("Created mock data for test run")
+
         cnts = np.arange(args.count, args.count + len(z))
 
         for yi, ye, zi, tr, ty, cnt in zip(y, yerr, z, truth, true_y, cnts):
+            args.log.info("Starting iteration of test source %03d"%(cnt))
             mkpath('LikeDiff/%03d'%(cnt))
             mcsed_model.input_params = tr
             mcsed_model.filter_flag = fl * True
@@ -871,49 +892,68 @@ def main(argv=None, ssp_info=None):
             mcsed_model.data_absindx = [-99]
             mcsed_model.data_absindx_e = [-99]
 
+            # Problems if true value for unused SF bins is not -99
+            if args.sfh=='binned_lsfr':
+                sfh_params = mcsed_model.get_params()
+                for sfhind, sfh in enumerate(sfh_params):
+                    if sfh<-90:
+                        tr[sfhind] = sfh
+
+            args.log.info("Defined source-specific parameters")
+
             # Remove filters containing Lyman-alpha (and those blueward)
             mcsed_model.remove_waverange_filters(0., args.blue_wave_cutoff, restframe=True)
             # Remove filters dominated by dust emission, if applicable
             if not args.fit_dust_em:
                 mcsed_model.remove_waverange_filters(args.wave_dust_em*1e4,1e10,
                                                      restframe=True)
+            args.log.info("Removed filters beyond the desired range (UV and/or mid-/far-IR)")
             filt_names = np.array([filt.split('.')[0] for filt in np.array(args.filt_dict.values())[mcsed_model.filter_flag]])
+            args.log.info("Got names of all filters 'active' in this run")
 
             index=0
             for var, varname, par_cl in zip(var_list, var_name_list, par_cl_list):
                 vararr, fnu = mcsed_model.fnu_vs_var(par_cl,var,tr)
-                mcsed_model.plot_Fnu_vs_var(vararr,fnu,filt_names,var,varname,cnt,imgdir='LikeDiff/%03d'%(cnt))
+                args.log.info("Ran fnu_vs_var for %s"%(var))
+                mcsed_model.plot_fnu_vs_var(vararr,fnu,filt_names,var,varname,cnt,imgdir='LikeDiff/%03d'%(cnt))
+                args.log.info("Ran plot_fnu_vs_var for %s"%(var))
                 if index%3==0: # Don't want too many plots
                     mcsed_model.plot_like_der_step(par_cl,var,tr,varname,cnt,imgdir='LikeDiff/%03d'%(cnt))
+                    args.log.info("Ran plot_like_der_step for %s"%(var))
                     mcsed_model.plot_like_der_var(par_cl,var,tr,varname,cnt,imgdir='LikeDiff/%03d'%(cnt))
+                    args.log.info("Ran plot_like_der_var for %s"%(var))
+        args.log.info("Finished making plots for source %03d"%(cnt))
 
         finstr = "Finished run for test case", cnt
 
     else:
+        args.log.info("Entering live (data) mode")
         # get input data
         y, yerr, z, flag, objid, field, em, emerr, absindx, absindx_e = input_file_data
 
         # Get best-fit param results from previous MCSED runs if applicable
-        if args.output_filename is not None:
-            param_list = get_param_values(args.output_filename,field,objid,
+        if args.output_param_file is not None:
+            param_list = get_param_values(args,field,objid,
                                           mcsed_model.get_param_names())
         else:
             param_list = None
+        args.log.info("If applicable, found best-fit MCSED parameters from previous runs")
 
         if args.ISM_correct:
             ebv_MW = ism_igm.get_MW_EBV(args)
         else:
             ebv_MW = np.zeros(len(y))
 
-        iv = mcsed_model.get_params()
+        args.log.info("If ISM dust corrections were requested, an array of Milky Way E(B-V) values were stored")
+        iv_orig = mcsed_model.get_params()
+        iv = np.copy(iv_orig)
         for yi, ye, zi, fl, oi, fd, emi, emie, indx, indxe, ebvi, ii in zip(y, yerr, z, flag, 
                                                                         objid, field, em, emerr,
                                                                         absindx, absindx_e, 
                                                                         ebv_MW, 
                                                                         np.arange(len(y))):
-            if param_list is not None:
-                iv = param_list[ii]
             source_id = '%s_%05d'%(fd,oi)
+            args.log.info("Starting iteration for source %s"%(source_id))
             mkpath('LikeDiff/%s'%(source_id))
             mcsed_model.filter_flag = fl
             mcsed_model.set_class_parameters(iv)
@@ -924,6 +964,18 @@ def main(argv=None, ssp_info=None):
             mcsed_model.data_emline_e = emie
             mcsed_model.data_absindx = indx
             mcsed_model.data_absindx_e = indxe
+
+            if param_list is not None:
+                iv = param_list[ii]
+                if iv[0]<-90.0:
+                    iv = iv_orig
+            
+            # Problems if true value for unused SF bins is not -99
+            if args.sfh=='binned_lsfr':
+                sfh_params = mcsed_model.get_params()
+                for sfhind, sfh in enumerate(sfh_params):
+                    if sfh<-90:
+                        iv[sfhind] = sfh
 
             # Bin the SSP ages, if possible
             if args.sfh == 'binned_lsfr':
@@ -936,14 +988,16 @@ def main(argv=None, ssp_info=None):
                 mcsed_model.ssp_ages = binned_ages
                 mcsed_model.ssp_spectra = binned_spec
                 mcsed_model.ssp_emline = binned_linespec
-
+            args.log.info("Adjusted source-specific MCSED model parameters")
             # Remove filters containing Lyman-alpha (and those blueward)
             mcsed_model.remove_waverange_filters(0., args.blue_wave_cutoff, restframe=True)
             # Remove filters dominated by dust emission, if applicable
             if not args.fit_dust_em:
                 mcsed_model.remove_waverange_filters(args.wave_dust_em*1e4,1e10, 
                                                      restframe=True)
+            args.log.info("Removed filters beyond the desired range (UV and/or mid-/far-IR)")
             filt_names = np.array([filt.split('.')[0] for filt in np.array(args.filt_dict.values())[mcsed_model.filter_flag]])
+            args.log.info("Got names of all filters 'active' in this run")
             # Only relevant if there is a nonzero E(B-V) Milky Way value to be fit
             if ebvi>1.0e-12: 
                 tauISM_lam = ebvi*tauISMf(mcsed_model.wave)/1.086
@@ -956,15 +1010,15 @@ def main(argv=None, ssp_info=None):
                 mcsed_model.tauIGM_lam = tauIGM_lam
             else:
                 mcsed_model.tauIGM_lam = None
-
+            args.log.info("Adjusted for ISM and IGM corrections if requested")
             index=0
             for var, varname, par_cl in zip(var_list, var_name_list, par_cl_list):
                 vararr, fnu = mcsed_model.fnu_vs_var(par_cl,var,iv)
-                mcsed_model.plot_Fnu_vs_var(vararr,fnu,filt_names,var,varname,source_id,imgdir='LikeDiff/%s'%(source_id))
+                mcsed_model.plot_fnu_vs_var(vararr,fnu,filt_names,var,varname,source_id,imgdir='LikeDiff/%s'%(source_id))
                 if index%3==0: # Don't want too many plots
-                    mcsed_model.plot_like_der_step(par_cl,var,iv,varname,source_id,imgdir='LikeDiff/%03d'%(source_id))
-                    mcsed_model.plot_like_der_var(par_cl,var,iv,varname,source_id,imgdir='LikeDiff/%03d'%(source_id))
-        
+                    mcsed_model.plot_like_der_step(par_cl,var,iv,varname,source_id,imgdir='LikeDiff/%s'%(source_id))
+                    mcsed_model.plot_like_der_var(par_cl,var,iv,varname,source_id,imgdir='LikeDiff/%s'%(source_id))
+        args.log.info("Finished making plots for source %s"%(source_id))
         finstr = "Finished run for source", source_id
     
     if args.parallel:

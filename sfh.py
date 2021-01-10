@@ -221,7 +221,7 @@ class burst:
         ''' Return the variable names (the attribute strings themselves) that
         are of interest to study individually '''
         return ['logsfr','age','burst_age','burst_strength'], ['Log SFR', 'Log Age',
-        'Burst Age', Burst Strength']
+        'Burst Age', 'Burst Strength']
 
     def get_params(self):
         ''' Return current parameters '''

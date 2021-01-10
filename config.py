@@ -1,9 +1,6 @@
 """ MCSED - config.py
-
 1) Configuration Settings
-
 .. moduleauthor:: Greg Zeimann <gregz@astro.as.utexas.edu>
-
 """
 # SSP code for models
 ssp = 'fsps'           # options include: 'fsps'
@@ -18,7 +15,7 @@ dust_law = 'noll'      # options include: 'calzetti', 'noll', 'reddy',
 #   else, set to string of desired dust emission class 
 dust_em = False # options include: 'DL07', False 
 # Assume energy balance or normalize the dust IR spectrum as a free parameter
-assume_energy_balance = True
+assume_energy_balance = False
 
 # Dust attenuation law parameters
 #   extinction factor (if negative, use default value for dust law of choice)
@@ -34,7 +31,7 @@ t_birth = 7. # age of the birth cloud (log years)
 # blue_wave_cutoff: ignore filters containing Lyman-alpha
 # wave_dust_em:     if not fitting dust emission component, ignore photometry
 #                   dominated by dust emission
-blue_wave_cutoff = 700.0 # rest-frame wavelength in Angstroms 
+blue_wave_cutoff = 1216.0 # rest-frame wavelength in Angstroms 
 wave_dust_em     = 2.5   # rest-frame wavelength in microns 
 
 # Stellar metallicity
@@ -97,7 +94,7 @@ output_dict = {'parameters'    : True,   # fitted parameters
 param_percentiles = [5, 16, 50, 84, 95]
 
 # When running in parallel mode, utilize (Total cores) - reserved_cores
-reserved_cores = 2 # integer
+reserved_cores = 0 # integer
 
 # Input emission line strengths
 #   keys are emission line name (str) corresponding to Name in the input file
@@ -157,4 +154,3 @@ absorption_index_dict = {"Lick_CN1"    : [ 1., (4142.125, 4177.125), (4080.125, 
                          "Lick_Hg_F"   : [ 1., (4331.25, 4352.25),   (4283.5, 4319.75),    (4354.75, 4384.75),   0],
                          "D4000"       : [ 1., (False, False),       (3750., 3950.),       (4050., 4250.),       2]
                         }
- 

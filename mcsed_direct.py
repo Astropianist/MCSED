@@ -4,6 +4,7 @@
 
 """
 import logging
+import sys
 import sfh
 import dust_abs
 import dust_emission
@@ -26,7 +27,7 @@ import os.path as op
 plt.ioff() 
 
 import seaborn as sns
-sns.set_context("talk") # options include: talk, poster, paper
+sns.set_context("paper") # options include: talk, poster, paper
 sns.set_style("ticks")
 sns.set_style({"xtick.direction": "in","ytick.direction": "in",
                "xtick.top":True, "ytick.right":True,
@@ -43,7 +44,9 @@ def partial_derivative(func, var=0, point=[],dx=1e-6):
     args = np.copy(point)
     def wraps(x):
         args[var] = x
-        return func(args)
+        val = func(args)
+        # print "For args =", args, "lnprob val is", val
+        return val
     return derivative(wraps, point[var], dx = dx)
 
 class Mcsed:
@@ -56,11 +59,11 @@ class Mcsed:
                  use_emline_flux=None, linefluxCSPdict=None,
                  data_absindx=None, data_absindx_e=None, absindx_dict=None,
                  use_absorption_indx=None, absindxCSPdict=None,
-                 fluxwv=None, indsort=None, fluxfn=None, vararr=None,
+                 fluxwv=None, indsort=None, fluxfn=None,
                  spectrum=None, redshift=None, Dl=None, filter_flag=None, 
                  input_params=None, true_fnu=None, true_spectrum=None, 
                  sigma_m=0.1, nwalkers=40, nsteps=1000, 
-                 chi2=None, tauISM_lam=None, tauIGM_lam=None, indsort=None):
+                 chi2=None, tauISM_lam=None, tauIGM_lam=None):
         ''' Initialize the Mcsed class.
 
         Init
@@ -220,7 +223,6 @@ class Mcsed:
         self.fluxwv = fluxwv
         self.indsort = indsort
         self.fluxfn = fluxfn
-        self.vararr = vararr
         self.spectrum = None
         self.redshift = redshift
         if self.redshift is not None:
@@ -239,6 +241,7 @@ class Mcsed:
 
         # Set up logging
         self.setup_logging()
+        self.log.info("Finished initialization of MCSED Instance")
 
     def set_new_redshift(self, redshift):
         ''' Setting redshift
@@ -602,6 +605,14 @@ class Mcsed:
         '''
         flag = True
         for par_cl in self.param_classes:
+            # flag_temp = getattr(self, par_cl).prior()
+            # if not flag_temp: 
+            #     print "flag for param_class", par_cl, ":", flag_temp
+            #     print "Here are the values in the offending class and their limits:"
+            #     print getattr(self,par_cl).get_params()
+            #     print getattr(self,par_cl).get_param_lims()
+            #     sys.exit("Weird flag value")
+            # flag *= flag_temp
             flag *= getattr(self, par_cl).prior()
         if not flag:
             return -np.inf
@@ -629,9 +640,11 @@ class Mcsed:
 
         # likelihood contribution from the photometry
         model_y = self.get_filter_fluxdensities()
+        # print "Model_y:", model_y
         inv_sigma2 = 1.0 / (self.data_fnu_e**2 + (model_y * self.sigma_m)**2)
         chi2_term = -0.5 * np.sum((self.data_fnu - model_y)**2 * inv_sigma2)
         parm_term = -0.5 * np.sum(np.log(1 / inv_sigma2))
+        # print "chi2_term, parm_term from photometry:", chi2_term, parm_term
 
         # calculate the degrees of freedom and store the current chi2 value
         if not self.chi2:
@@ -676,6 +689,7 @@ class Mcsed:
                         parm_term += -0.5 * np.log(emline_weight * sigma2)
                         if not self.chi2:
                             dof_wht.append(emline_weight)
+        # print "After emline and absorption stuff, chi2_term and parm_term:", chi2_term, parm_term
 
         # record current chi2 and degrees of freedom
         if not self.chi2:
@@ -718,6 +732,15 @@ class Mcsed:
                     return -np.inf, np.array([-np.inf, -np.inf, -np.inf, -np.inf])
             else:
                 return -np.inf, np.array([-np.inf, -np.inf, -np.inf])
+
+    def lnprob_likeder(self, theta):
+        self.set_class_parameters(theta)
+        lp = self.lnprior()
+        if np.isfinite(lp):
+            lnl,mass,sfr10,sfr100,fpdr,mdust_eb = self.lnlike()
+            return lp+lnl
+        else:
+            return -np.inf
 
     def get_param_names(self):
         ''' Grab the names of the parameters for plotting
@@ -826,7 +849,7 @@ class Mcsed:
         rng = abs(lims[1]-lims[0])
         vararr = np.linspace(lims[0]+0.02*rng,lims[1]-0.02*rng,numeval)
         for i in range(numeval):
-            setattr(getattr(self,param_class),var,self.vararr[i])
+            setattr(getattr(self,param_class),var,vararr[i])
             if self.dust_em_class.assume_energy_balance:
                 self.spectrum, mass, mdust_eb = self.build_csp()
             else:
@@ -847,13 +870,13 @@ class Mcsed:
             return ( self.sfh_class.get_nparams() + self.dust_abs_class.get_nparams()
                     + self.met_class.get_nparams() + self.dust_em_class.get_param_nums(var) )
         else:
-            print("What param class is this??")
+            self.log.info("What param class is this??")
             return -99
 
     def like_part_der_single(self,param_class,var,theta,dx=1.0e-6):
         var_num = self.get_var_num(param_class,var)
         assert var_num>=0, "Either param_class and/or var doesn't match MCSED specs"
-        return partial_derivative(lnprob,var=var_num,point=theta,dx=dx)
+        return partial_derivative(self.lnprob_likeder,var=var_num,point=theta,dx=dx)
 
     def like_part_der_mult(self,param_class,var,theta,numeval=200,dx=1.0e-6):
         thetamod = np.copy(theta)
@@ -865,10 +888,11 @@ class Mcsed:
         partder = np.zeros(numeval)
         for i in range(numeval):
             thetamod[var_num] = vararr[i]
-            partder[i] = partial_derivative(lnprob,var=var_num,point=theta,dx=dx)
+            partder[i] = partial_derivative(self.lnprob_likeder,var=var_num,point=thetamod,dx=dx)
+            # if np.isnan(partder[i]): print "like_der_mult partder[%d]=NaN"%(i)
         return vararr, partder
 
-    def plot_Fnu_vs_var(self,vararr,fnuarr,filt_names,varname,varlabel,id,
+    def plot_fnu_vs_var(self,vararr,fnuarr,filt_names,varname,varlabel,id,
                         max_in_one=3,imgtype='png',imgdir=''):
         n = len(fnuarr[0])
         assert len(filt_names)==n
@@ -885,7 +909,7 @@ class Mcsed:
                     axes[i,j].semilogy(vararr,fnuarr[:,index],color=color_palette.next(),label=filt_names[index])
                     if index>=n-1: break
                     index+=1
-                axes[i,j].legend(loc='best',size='small')
+                # axes[i,j].legend(loc='best',fontsize='x-small',bbox_to_anchor=(0.7, 0.7, 0.3, 0.3))
                 axes[i,j].minorticks_on()
                 if index>=n-1: break
             if index>=n-1: break
@@ -896,6 +920,7 @@ class Mcsed:
         plt.tight_layout()
         imgname = op.join(imgdir,"%s_Fnu_vs_%s.%s"%(id,varname,imgtype))
         fig.savefig(imgname,bbox_inches='tight',dpi=300)
+        plt.close(fig)
 
     def plot_like_der_step(self,param_class,var,theta,varlabel,id,numeval=200,
                            imgtype='png',imgdir=''):
@@ -906,8 +931,10 @@ class Mcsed:
         dx = multrange*rng
         for j in range(numeval):
             partder[j] = self.like_part_der_single(param_class,var,theta,dx[j])
+            # if np.isnan(partder[j]): print "like_der_step partder[%d]=NaN"%(j)
         
         fig, ax = plt.subplots()
+        ax.set_xscale('log')
         ax.set_yscale('symlog')
         cond = ~np.isnan(partder)
         ax.plot(multrange[cond],partder[cond],color=color_palette.next())
@@ -917,6 +944,7 @@ class Mcsed:
         plt.tight_layout()
         imgname = op.join(imgdir,"%s_dlogLd%s_step.%s"%(id,var,imgtype))
         fig.savefig(imgname,bbox_inches='tight',dpi=300)
+        plt.close(fig)
 
     def plot_like_der_var(self,param_class,var,theta,varlabel,id,numeval=200,
                           imgtype='png',imgdir=''):
@@ -930,3 +958,4 @@ class Mcsed:
         ax.minorticks_on()
         imgname = op.join(imgdir,"%s_dlogLd%s_vs_%s.%s"%(id,var,var,imgtype))
         fig.savefig(imgname,bbox_inches='tight',dpi=300)
+        plt.close(fig)
