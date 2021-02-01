@@ -1,0 +1,16 @@
+#Ignore output
+output/
+#Ignore dat files
+*.dat
+#Ignore text files
+*.txt
+#Ignore image files
+*.jpeg
+*.jpg
+*.png
+*.pdf
+*.pptx
+#Ignore modified versions or whatever they are
+*~
+*.pyc
+*.o
