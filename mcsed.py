@@ -540,11 +540,11 @@ class Mcsed:
         linespec_dustobscured = linespec_dustfree * 10**(-0.4*Alam_emline)
 
         dust_em = self.dust_em_class.evaluate(self.wave)
-        L_dust_pm = np.dot(self.dnu,dust_em)
+        L_dust = np.dot(self.dnu,dust_em)
         L_bol = (np.dot(self.dnu, spec_dustfree) - np.dot(self.dnu, spec_dustobscured)) 
         if self.dust_em_class.assume_energy_balance:
             # Bolometric luminosity of dust attenuation (for energy balance)
-            mdust_eb = L_bol/L_dust_pm 
+            mdust_eb = L_bol/L_dust
             spec_dustobscured += mdust_eb * dust_em
         else:
             spec_dustobscured += dust_em
@@ -575,7 +575,7 @@ class Mcsed:
         if self.dust_em_class.assume_energy_balance:
             return csp / self.Dl**2, mass, mdust_eb
         else:
-            return csp / self.Dl**2, mass, L_bol, L_dust_pm
+            return csp / self.Dl**2, mass, L_bol, L_dust
 
     def lnprior(self):
         ''' Simple, uniform prior for input variables
@@ -605,12 +605,12 @@ class Mcsed:
         '''
         if self.dust_em_class.assume_energy_balance:
             self.spectrum, mass, mdust_eb = self.build_csp()
-            L_bol, L_dust_pm = None, None
+            L_bol, L_dust = None, None
         else:
-            self.spectrum, mass, L_bol, L_dust_pm = self.build_csp()
+            self.spectrum, mass, L_bol, L_dust = self.build_csp()
             mdust_eb = None
 
-        sfr10,sfr100,fpdr,L_dust = self.get_derived_params(L_dust_pm)
+        sfr10,sfr100,fpdr = self.get_derived_params()
 
         # likelihood contribution from the photometry
         model_y = self.get_filter_fluxdensities()
@@ -834,7 +834,7 @@ class Mcsed:
         self.samples = new_chain[:, burnin_step:, :].reshape((-1, ndim+numderpar+1))
 
 
-    def get_derived_params(self,L_dust_pm):
+    def get_derived_params(self):
         ''' These are not free parameters in the model, but are instead
         calculated from free parameters
         '''
@@ -856,11 +856,10 @@ class Mcsed:
                 L_dust = None
             else:
                 umin,gamma,qpah,mdust = self.dust_em_class.get_params()
-                L_dust = mdust * L_dust_pm
             umax = 1.0e6
             fpdr = gamma*np.log(umax/100.) / ((1.-gamma)*(1.-umin/umax) + gamma*np.log(umax/umin))
 
-        return sfr10,sfr100,fpdr,L_dust
+        return sfr10,sfr100,fpdr
 
 
     def set_median_fit(self,rndsamples=200,lnprobcut=7.5):
