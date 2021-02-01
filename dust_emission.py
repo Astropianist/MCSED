@@ -101,6 +101,37 @@ class DL07:
             else:
                 return 4 
 
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if self.fixed:
+            print("Dust parameters are not active in this configuration")
+            return -99
+        else:
+            if var=='umin': return 0
+            elif var=='gamma': return 1
+            elif var=='qpah': return 2
+            elif var=='mdust':
+                if self.assume_energy_balance:
+                    print("Mdust is not a free parameter in this configuration")
+                    return -99
+                else: return 3
+            else:
+                print("What variable is this??")
+                return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        if self.fixed:
+            return [],[]
+        else:
+            varlist = ['umin','gamma','qpah']
+            varnames = ['Umin', '$\gamma$', '$q_{pah}$']
+        if not self.assume_energy_balance:
+            varlist.append('mdust')
+            varnames.append('$M_{\mathrm{dust}}$')
+        return varlist,varnames
+
     def get_params(self):
         ''' Return current parameters '''
         if self.fixed:

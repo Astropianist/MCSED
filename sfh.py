@@ -55,6 +55,19 @@ class constant:
         ''' Return number of parameters '''
         return 2
 
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='logsfr': return 0
+        elif var=='age': return 1
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['logsfr','age'], ['Log SFR', 'Log Age']
+
     def get_params(self):
         ''' Return current parameters '''
         return [self.logsfr, self.age]
@@ -194,6 +207,22 @@ class burst:
         ''' Return number of parameters '''
         return 4
 
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='logsfr': return 0
+        elif var=='age': return 1
+        elif var=='burst_age': return 2
+        elif var=='burst_strength': return 3
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['logsfr','age','burst_age','burst_strength'], ['Log SFR', 'Log Age',
+        'Burst Age', 'Burst Strength']
+
     def get_params(self):
         ''' Return current parameters '''
         return [self.logsfr, self.age, self.burst_age,# self.burst_sigma,
@@ -325,6 +354,22 @@ class polynomial:
     def get_nparams(self):
         ''' Return number of parameters '''
         return len(self.age_locs) #+1
+
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        names = ['p_'+str(i) for i in self.nums]
+        if var in names:
+            return int(var.split('_')[1])-1
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        varlist = ['p_'+str(i) for i in self.nums]
+        varnames = ['P (%s)' % str(name) for name in self.age_locs]
+        return varlist, varnames
 
     def get_params(self):
         ''' Return current parameters '''
@@ -474,6 +519,20 @@ class exponential:
         ''' Return number of parameters '''
         return 3
 
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='logsfr': return 0
+        elif var=='age': return 1
+        elif var=='tau': return 2
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['logsfr','age','tau'], ['Log SFR','Log Age',r'Log $\tau$']
+
     def get_params(self):
         ''' Return current parameters '''
         return [self.logsfr, self.age, self.tau]
@@ -615,6 +674,22 @@ class double_powerlaw:
         ''' Return number of parameters '''
         return 5
 
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='tau': return 0
+        elif var=='a': return 1
+        elif var=='b': return 2
+        elif var=='c': return 3
+        elif var=='age': return 4
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['tau','a','b','c','age'], ['$tau_{sfh}$', 'a', 'b', 'c', 'Log Age']
+
     def get_params(self):
         ''' Return current parameters '''
         return [self.tau, self.a, self.b, self.c, self.age]
@@ -745,6 +820,20 @@ class binned_lsfr:
     def get_nparams(self):
         ''' Return number of parameters '''
         return len(self.ages)
+
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        names = ['sfr_'+str(i) for i in self.nums]
+        if var in names:
+            return int(var.split('_')[1])-1
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['sfr_1'], ['SFR (100 My)']
 
     def get_params(self):
         ''' Return current parameters '''

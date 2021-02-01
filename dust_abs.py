@@ -75,6 +75,18 @@ class calzetti:
         ''' Return number of parameters '''
         return 1
 
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='EBV': return 0
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['EBV'], ['E(B-V)']
+
     def get_params(self):
         ''' Return current parameters '''
         return [self.EBV]
@@ -194,6 +206,20 @@ class noll:
         ''' Return number of parameters '''
         return 3
 
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='EBV': return 0
+        elif var=='delta': return 1
+        elif var=='Eb': return 2
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['EBV','delta'], ['E(B-V)','$\delta$']
+
     def get_params(self):
         ''' Return current parameters '''
         return [self.EBV, self.delta, self.Eb]
@@ -302,6 +328,18 @@ class reddy:
     def get_nparams(self):
         ''' Return number of parameters '''
         return 1
+
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='EBV': return 0
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['EBV'], ['E(B-V)']
 
     def get_params(self):
         ''' Return current parameters '''
@@ -438,6 +476,18 @@ class conroy:
     def get_nparams(self):
         ''' Return number of parameters '''
         return 1
+
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='EBV': return 0
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['EBV'], ['E(B-V)']
 
     def get_params(self):
         ''' Return current parameters '''
@@ -634,6 +684,18 @@ class cardelli:
     def get_nparams(self):
         ''' Return number of parameters '''
         return 1
+
+    def get_param_nums(self,var):
+        ''' Return the position of each parameter '''
+        if var=='EBV': return 0
+        else:
+            print("What variable is this??")
+            return -99
+
+    def get_interesting_var_names(self):
+        ''' Return the variable names (the attribute strings themselves) that
+        are of interest to study individually '''
+        return ['EBV'], ['E(B-V)']
 
     def get_params(self):
         ''' Return current parameters '''

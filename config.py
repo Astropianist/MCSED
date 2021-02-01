@@ -1,9 +1,6 @@
 """ MCSED - config.py
-
 1) Configuration Settings
-
 .. moduleauthor:: Greg Zeimann <gregz@astro.as.utexas.edu>
-
 """
 # SSP code for models
 ssp = 'fsps'           # options include: 'fsps'
@@ -161,4 +158,3 @@ absorption_index_dict = {"Lick_CN1"    : [ 1., (4142.125, 4177.125), (4080.125, 
                          "Lick_Hg_F"   : [ 1., (4331.25, 4352.25),   (4283.5, 4319.75),    (4354.75, 4384.75),   0],
                          "D4000"       : [ 1., (False, False),       (3750., 3950.),       (4050., 4250.),       2]
                         }
- 
