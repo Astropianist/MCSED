@@ -539,15 +539,15 @@ class Mcsed:
                        / self.dust_abs_class.EBV_old_young)
         linespec_dustobscured = linespec_dustfree * 10**(-0.4*Alam_emline)
 
+        dust_em = self.dust_em_class.evaluate(self.wave)
+        L_dust = np.dot(self.dnu,dust_em)
+        L_bol = (np.dot(self.dnu, spec_dustfree) - np.dot(self.dnu, spec_dustobscured)) 
         if self.dust_em_class.assume_energy_balance:
             # Bolometric luminosity of dust attenuation (for energy balance)
-            L_bol = (np.dot(self.dnu, spec_dustfree) - np.dot(self.dnu, spec_dustobscured)) 
-            dust_em = self.dust_em_class.evaluate(self.wave)
-            L_dust = np.dot(self.dnu,dust_em)
-            mdust_eb = L_bol/L_dust 
+            mdust_eb = L_bol/L_dust
             spec_dustobscured += mdust_eb * dust_em
         else:
-            spec_dustobscured += self.dust_em_class.evaluate(self.wave)
+            spec_dustobscured += dust_em
 
         # Redshift the spectrum to the observed frame
         csp = np.interp(self.wave, self.wave * (1. + self.redshift),
@@ -575,7 +575,7 @@ class Mcsed:
         if self.dust_em_class.assume_energy_balance:
             return csp / self.Dl**2, mass, mdust_eb
         else:
-            return csp / self.Dl**2, mass
+            return csp / self.Dl**2, mass, L_bol, L_dust
 
     def lnprior(self):
         ''' Simple, uniform prior for input variables
@@ -605,8 +605,9 @@ class Mcsed:
         '''
         if self.dust_em_class.assume_energy_balance:
             self.spectrum, mass, mdust_eb = self.build_csp()
+            L_bol, L_dust = None, None
         else:
-            self.spectrum, mass = self.build_csp()
+            self.spectrum, mass, L_bol, L_dust = self.build_csp()
             mdust_eb = None
 
         sfr10,sfr100,fpdr = self.get_derived_params()
@@ -670,7 +671,7 @@ class Mcsed:
         self.chi2['chi2']  = -2. * chi2_term
         self.chi2['rchi2'] = self.chi2['chi2'] / (self.chi2['dof'] - 1.)
 
-        return (chi2_term + parm_term, mass,sfr10,sfr100,fpdr,mdust_eb)
+        return (chi2_term + parm_term, mass,sfr10,sfr100,fpdr,mdust_eb,L_bol,L_dust)
 
     def lnprob(self, theta):
         ''' Calculate the log probabilty and return the value and stellar mass 
@@ -686,12 +687,12 @@ class Mcsed:
         self.set_class_parameters(theta)
         lp = self.lnprior()
         if np.isfinite(lp):
-            lnl,mass,sfr10,sfr100,fpdr,mdust_eb = self.lnlike()
+            lnl,mass,sfr10,sfr100,fpdr,mdust_eb,L_bol,L_dust = self.lnlike()
             if not self.dust_em_class.fixed:
                 if self.dust_em_class.assume_energy_balance:
                     return lp + lnl, np.array([mass,sfr10,sfr100,fpdr,mdust_eb])
                 else:
-                    return lp + lnl, np.array([mass, sfr10, sfr100, fpdr])
+                    return lp + lnl, np.array([mass, sfr10, sfr100, fpdr, L_bol, L_dust])
             else:
                 return lp + lnl, np.array([mass, sfr10, sfr100])
         else:
@@ -699,7 +700,7 @@ class Mcsed:
                 if self.dust_em_class.assume_energy_balance:
                     return -np.inf, np.array([-np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
                 else:
-                    return -np.inf, np.array([-np.inf, -np.inf, -np.inf, -np.inf])
+                    return -np.inf, np.array([-np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
             else:
                 return -np.inf, np.array([-np.inf, -np.inf, -np.inf])
 
@@ -814,7 +815,7 @@ class Mcsed:
             if self.dust_em_class.assume_energy_balance:
                 numderpar = 5
             else:
-                numderpar = 4
+                numderpar = 6
         new_chain = np.zeros((self.nwalkers, self.nsteps, ndim+numderpar+1))
         new_chain[:, :, :-(numderpar+1)] = sampler.chain
         self.chain = sampler.chain
@@ -823,7 +824,7 @@ class Mcsed:
                 for k in xrange(len(sampler.blobs[0][0])):
                     x = sampler.blobs[i][j][k]
                     # stellar mass and dust mass
-                    if k==0 or k==4: 
+                    if k==0 or (self.dust_em_class.assume_energy_balance and k==4): 
                         new_chain[j, i, -(numderpar+1)+k] = np.where((np.isfinite(x)) * (x > 10.),
                                                np.log10(x), -99.)
                     # other derived parameters 
@@ -848,9 +849,11 @@ class Mcsed:
 
         if self.dust_em_class.fixed:
             fpdr = None
+            L_dust = None
         else:
             if self.dust_em_class.assume_energy_balance:
                 umin,gamma,qpah = self.dust_em_class.get_params()
+                L_dust = None
             else:
                 umin,gamma,qpah,mdust = self.dust_em_class.get_params()
             umax = 1.0e6
@@ -894,7 +897,7 @@ class Mcsed:
             if self.dust_em_class.assume_energy_balance:
                 self.spectrum, mass, mdust_eb = self.build_csp()
             else:
-                self.spectrum, mass = self.build_csp()
+                self.spectrum, mass, L_bol, L_dust = self.build_csp()
             fnu = self.get_filter_fluxdensities()
             sp.append(self.spectrum * 1.)
             fn.append(fnu * 1.)
@@ -908,7 +911,7 @@ class Mcsed:
         if self.dust_em_class.assume_energy_balance:
             self.spectrum, mass, mdust_eb = self.build_csp()
         else:
-            self.spectrum, mass = self.build_csp()
+            self.spectrum, mass, L_bol, L_dust = self.build_csp()
         self.true_spectrum = self.spectrum.copy()
         ax.plot(self.wave, self.spectrum, color=color, alpha=alpha)
 
@@ -1038,7 +1041,7 @@ class Mcsed:
             if self.dust_em_class.assume_energy_balance:
                 numderpar = 5
             else:
-                numderpar = 4
+                numderpar = 6
         if self.dust_em_class.assume_energy_balance:
             indarr = np.concatenate((np.arange(o,len(nsamples[0])-numderpar),np.array([-2]))) 
         else:

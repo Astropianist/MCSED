@@ -683,8 +683,9 @@ def mock_data(args, mcsed_model, nsamples=5, phot_error=0.05):
         mcsed_model.set_new_redshift(z)
         if mcsed_model.dust_em_class.assume_energy_balance:
             mcsed_model.spectrum, mass, mdust_eb = mcsed_model.build_csp()
+            L_bol, L_dust = None, None
         else:
-            mcsed_model.spectrum, mass = mcsed_model.build_csp()
+            mcsed_model.spectrum, mass, L_bol, L_dust = mcsed_model.build_csp()
             mdust_eb = None
         sfr10,sfr100,fpdr = mcsed_model.get_derived_params()
 
@@ -825,8 +826,11 @@ def main(argv=None, ssp_info=None):
     names.append('SFR100')
     if not mcsed_model.dust_em_class.fixed:
         names.append('fPDR')
-    if mcsed_model.dust_em_class.assume_energy_balance:
-        names.append("Mdust_EB")
+        if mcsed_model.dust_em_class.assume_energy_balance:
+            names.append("Mdust_EB")
+        else:
+            names.append("L_bol")
+            names.append("L_dust")
 
     percentiles = args.param_percentiles 
     labels = ['Field', 'ID', 'z']
@@ -989,24 +993,28 @@ def main(argv=None, ssp_info=None):
             names.append('SFR100')
             if not mcsed_model.dust_em_class.fixed:
                 names.append('fPDR')
-            if mcsed_model.dust_em_class.assume_energy_balance:
-                names.append('Mdust_EB')
+                if mcsed_model.dust_em_class.assume_energy_balance:
+                    names.append('Mdust_EB')
+                else:
+                    names.append("L_bol")
+                    names.append("L_dust")
+
             names.append('Ln Prob')
             if args.output_dict['fitposterior']: 
                 T = Table(mcsed_model.samples, names=names)
-                T.write('output/fitposterior_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
+                T.write('output/fitposterior_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law,args.output_filename.split(".")[0]),
                         overwrite=True, format='ascii.fixed_width_two_line')
             if args.output_dict['bestfitspec']:
                 T = Table([mcsed_model.wave, mcsed_model.medianspec],
                           names=['wavelength', 'spectrum'])
-                T.write('output/bestfitspec_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
+                T.write('output/bestfitspec_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law,args.output_filename.split(".")[0]),
                         overwrite=True, format='ascii.fixed_width_two_line')
             if args.output_dict['fluxdensity']:
                 T = Table([mcsed_model.fluxwv, mcsed_model.fluxfn,
                            mcsed_model.data_fnu, mcsed_model.data_fnu_e],
                            names=['wavelength','model_fluxdensity',
                                   'fluxdensity', 'fluxdensityerror'])
-                T.write('output/filterflux_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
+                T.write('output/filterflux_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law,args.output_filename.split(".")[0]),
                         overwrite=True, format='ascii.fixed_width_two_line')
             if (args.output_dict['lineflux']) & (mcsed_model.use_emline_flux):
                 emlines = list(mcsed_model.emline_dict.keys())
@@ -1022,7 +1030,7 @@ def main(argv=None, ssp_info=None):
                                  'lineflux', 'linefluxerror'])
                 T.sort('rest_wavelength')
                 if len(T):
-                    T.write('output/lineflux_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
+                    T.write('output/lineflux_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law,args.output_filename.split(".")[0]),
                             overwrite=True, format='ascii.fixed_width_two_line')
             if (args.output_dict['absindx']) & (mcsed_model.use_absorption_indx):
                 abs_names = list(mcsed_model.absindx_dict.keys())
@@ -1037,7 +1045,7 @@ def main(argv=None, ssp_info=None):
                           names=['INDX', 'weight', 'model',
                                  'measure', 'measure_error'])
                 if len(T):
-                    T.write('output/absindx_%s_%05d_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law),
+                    T.write('output/absindx_%s_%05d_%s_%s_%s.dat' % (fd, oi, args.sfh, args.dust_law,args.output_filename.split(".")[0]),
                             overwrite=True, format='ascii.fixed_width_two_line')
 
             last = mcsed_model.add_fitinfo_to_table(percentiles)

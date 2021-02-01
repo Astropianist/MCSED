@@ -10,6 +10,10 @@ ssp = 'fsps'           # options include: 'fsps'
 isochrone = 'padova'   # options include: 'padova'
 # SFH options include: 'constant', 'burst', 'polynomial', 'exponential', 
 #                      'double_powerlaw', 'binned_lsfr'
+# Dust emission parameters: 
+# if False, do not fit for dust emission component and remove all filters 
+#           redward of rest-frame wave_dust_em microns  (defined below)
+# else, set to string of desired dust emission class 
 sfh = 'binned_lsfr' 
 dust_law = 'noll'      # options include: 'calzetti', 'noll', 'reddy', 
                        #                  'conroy', 'cardelli'
@@ -18,7 +22,7 @@ dust_law = 'noll'      # options include: 'calzetti', 'noll', 'reddy',
 #   else, set to string of desired dust emission class 
 dust_em = False # options include: 'DL07', False 
 # Assume energy balance or normalize the dust IR spectrum as a free parameter
-assume_energy_balance = True
+assume_energy_balance = False
 
 # Dust attenuation law parameters
 #   extinction factor (if negative, use default value for dust law of choice)
@@ -34,7 +38,7 @@ t_birth = 7. # age of the birth cloud (log years)
 # blue_wave_cutoff: ignore filters containing Lyman-alpha
 # wave_dust_em:     if not fitting dust emission component, ignore photometry
 #                   dominated by dust emission
-blue_wave_cutoff = 700.0 # rest-frame wavelength in Angstroms 
+blue_wave_cutoff = 300.0 # rest-frame wavelength in Angstroms 
 wave_dust_em     = 2.5   # rest-frame wavelength in microns 
 
 # Stellar metallicity
@@ -97,7 +101,7 @@ output_dict = {'parameters'    : True,   # fitted parameters
 param_percentiles = [5, 16, 50, 84, 95]
 
 # When running in parallel mode, utilize (Total cores) - reserved_cores
-reserved_cores = 2 # integer
+reserved_cores = 0 # integer
 
 # Input emission line strengths
 #   keys are emission line name (str) corresponding to Name in the input file
@@ -112,11 +116,11 @@ emline_list_dict = {'[OII]3727'   : (3727. , 1.),
                     '[OIII]4363'  : (4363. , 1.),
                     'HeI4471'     : (4471. , 1.),
                     'HeII4686'    : (4686. , 1.),
-                    'Hb'          : (4861. , 1.),
-                    '[OIII]4959'  : (4959. , 1.),
-                    'OIII'        : (5007. , 1.),
+                    'Hb'          : (4861. , 1.0),
+                    '[OIII]4959'  : (4959. , 1.0),
+                    'OIII'        : (5007. , 1.0),
                     'Ha'          : (6563. , 2.5),
-                    'NII'         : (6583. , 0.5)
+                    'NII'         : (6583. , 1.0)
                    }
 
 emline_factor = 1e-17 # numerical conversion from input values to units ergs/cm2/s
