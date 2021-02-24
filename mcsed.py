@@ -570,12 +570,12 @@ class Mcsed:
                 # Correct flux from 10pc to redshift of source
                 linefluxCSPdict[emline] = linespec_dustobscured[indx] / self.Dl**2
         self.linefluxCSPdict = linefluxCSPdict
-
         # Correct spectra from 10pc to redshift of the source
         if self.dust_em_class.assume_energy_balance:
             return csp / self.Dl**2, mass, mdust_eb
         else:
-            return csp / self.Dl**2, mass, L_bol, L_dust
+            L_unit_mult = 1.0e-29 * (3.086e-19)**2
+            return csp / self.Dl**2, mass, L_bol*L_unit_mult, L_dust*L_unit_mult
 
     def lnprior(self):
         ''' Simple, uniform prior for input variables
