@@ -915,31 +915,31 @@ class Mcsed:
         self.true_spectrum = self.spectrum.copy()
         ax.plot(self.wave, self.spectrum, color=color, alpha=alpha)
 
-    def add_sfr_plot(self, ax1):
+    def add_sfr_plot(self, ax1, fsgrad=12):
         ax1.set_xscale('log')
         ax1.set_yscale('log')
-        ax1.set_ylabel(r'SFR [$M_{\odot} yr^{-1}$]')
-        ax1.set_xlabel('Lookback Time') 
+        ax1.set_ylabel(r'SFR [$M_{\odot} yr^{-1}$]',fontsize=fsgrad)
+        ax1.set_xlabel('Lookback Time', fontsize=fsgrad) 
         ax1.set_xticks([1e-3, 1e-2, 1e-1, 1])
-        ax1.set_xticklabels(['1 Myr', '10 Myr', '100 Myr', '1 Gyr'])
+        ax1.set_xticklabels(['1 Myr', '10 Myr', '100 Myr', '1 Gyr'],fontsize=fsgrad-1)
         ax1.set_yticks([1e-2, 1e-1, 1, 1e1, 1e2, 1e3])
-        ax1.set_yticklabels(['0.01', '0.1', '1', '10', '100', '1000'])
+        ax1.set_yticklabels(['0.01', '0.1', '1', '10', '100', '1000'],fontsize=fsgrad-1)
         ax1.set_xlim([10**-3, max(10**self.sfh_class.age, 1.)])
         ax1.set_ylim([10**-2.3, 1e3])
         ax1.minorticks_on()
 
-    def add_dust_plot(self, ax2):
+    def add_dust_plot(self, ax2, fsgrad=12):
         ax2.set_xscale('log')
         xtick_pos = [2000, 4000, 8000]
         xtick_lbl = ['2000', '4000', '8000']
         ax2.set_xticks(xtick_pos)
-        ax2.set_xticklabels(xtick_lbl)
+        ax2.set_xticklabels(xtick_lbl,fontsize=fsgrad-1)
         ax2.set_xlim([1000, 10000])
         ax2.set_ylim([0.01, 4])
-        ax2.set_ylabel(r'$A_\lambda$ [mag]')
-        ax2.set_xlabel(r'Wavelength [$\AA$]')
+        ax2.set_ylabel(r'$A_\lambda$ [mag]',fontsize=fsgrad)
+        ax2.set_xlabel(r'Wavelength [$\AA$]',fontsize=fsgrad)
 
-    def add_spec_plot(self, ax3):
+    def add_spec_plot(self, ax3, fsgrad=12):
         ax3.set_xscale('log')
         if self.dust_em_class.fixed:
             xtick_pos = [1000, 3000, 5000, 10000, 20000, 40000]
@@ -955,12 +955,12 @@ class Mcsed:
             xlims[1] = max( xlims[1], max(self.fluxwv) + 50000) 
             ax3.set_yscale('log')
         ax3.set_xticks(xtick_pos)
-        ax3.set_xticklabels(xtick_lbl)
+        ax3.set_xticklabels(xtick_lbl, fontsize=fsgrad-1)
         ax3.set_xlim(xlims)
-        ax3.set_xlabel(r'Wavelength [$\mu$m]')
-        ax3.set_ylabel(r'$F_{\nu}$ [$\mu$Jy]')
+        ax3.set_xlabel(r'Wavelength [$\mu$m]', fontsize=fsgrad)
+        ax3.set_ylabel(r'$F_{\nu}$ [$\mu$Jy]', fontsize=fsgrad)
 
-    def add_subplots(self, ax1, ax2, ax3, nsamples, rndsamples=200):
+    def add_subplots(self, ax1, ax2, ax3, nsamples, rndsamples=200, fsgrad=12):
         ''' Add Subplots to Triangle plot below '''
         sp, fn = ([], []) 
         for i in np.arange(rndsamples):
@@ -986,10 +986,10 @@ class Mcsed:
             p.set_facecolor('none')
 
         ax3.errorbar(self.fluxwv, self.data_fnu, yerr=self.data_fnu_e, fmt='s',
-                     fillstyle='none', markersize=150,
+                     fillstyle='none', markersize=20,
                      color=[0.510, 0.373, 0.529], zorder=10)
-        ax3.scatter(self.fluxwv, self.data_fnu, marker='s', s=150,facecolors='none',
-                    edgecolors=[0.510, 0.373, 0.529], linewidths=2, zorder=10)        
+        # ax3.scatter(self.fluxwv, self.data_fnu, marker='s', s=150,facecolors='none',
+        #             edgecolors=[0.510, 0.373, 0.529], linewidths=2, zorder=10)        
         sel = np.where((self.fluxwv > ax3.get_xlim()[0]) * (self.fluxwv < ax3.get_xlim()[1]))[0]
         ax3min = np.percentile(self.data_fnu[sel][self.data_fnu[sel]>0.0], 1)
         ax3max = np.percentile(self.data_fnu[sel][self.data_fnu[sel]>0.0], 99)
@@ -1001,7 +1001,7 @@ class Mcsed:
         else:
             ax3.set_ylim([ax3min - 0.4 * ax3ran, ax3max + 0.6 * ax3ran])
         ax3.text((1.+self.redshift)*1400, ax3max,
-                 r'${\chi}_{\nu}^2 = $%0.2f' % self.chi2['rchi2'])
+                 r'${\chi}_{\nu}^2 = %0.2f; z = %0.2f$' %(self.chi2['rchi2'],self.redshift),fontsize=fsgrad)
 
 
     def triangle_plot(self, outname, lnprobcut=7.5, imgtype='png'):
@@ -1046,13 +1046,14 @@ class Mcsed:
             indarr = np.concatenate((np.arange(o,len(nsamples[0])-numderpar),np.array([-2]))) 
         else:
             indarr = np.arange(o,len(nsamples[0])-numderpar) 
-        fsgrad = 11+int(round(0.75*len(indarr)))
+        fsgrad = 13+int(round(0.75*len(indarr)))
         fig = corner.corner(nsamples[:, indarr], labels=names,
                             range=percentilerange,
                             truths=truths, truth_color='gainsboro',
                             label_kwargs={"fontsize": fsgrad}, show_titles=True,
-                            title_kwargs={"fontsize": fsgrad-2},
-                            quantiles=[0.16, 0.5, 0.84], bins=30)
+                            title_kwargs={"fontsize": fsgrad-1},
+                            quantiles=[0.16, 0.5, 0.84], bins=30,
+                            smooth=2.0, smooth1d=None, color='indigo')
         w = fig.get_figwidth()
         fig.set_figwidth(w-(len(indarr)-13)*0.025*w)
 
@@ -1068,10 +1069,10 @@ class Mcsed:
         ax3 = fig.add_subplot(3, 1, 3)
         ax3.set_position([0.38-0.008*(len(indarr)-4), 0.82-0.001*(len(indarr)-4), 
                           0.60+0.008*(len(indarr)-4), 0.15+0.001*(len(indarr)-4)])
-        self.add_sfr_plot(ax1)
-        self.add_dust_plot(ax2)
-        self.add_spec_plot(ax3)
-        self.add_subplots(ax1, ax2, ax3, nsamples)
+        self.add_sfr_plot(ax1, fsgrad=fsgrad)
+        self.add_dust_plot(ax2, fsgrad=fsgrad)
+        self.add_spec_plot(ax3, fsgrad=fsgrad)
+        self.add_subplots(ax1, ax2, ax3, nsamples, fsgrad=fsgrad)
 
         for ax_loc in fig.axes:
             ax_loc.minorticks_on() 
